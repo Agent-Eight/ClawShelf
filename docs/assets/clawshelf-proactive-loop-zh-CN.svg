@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
   <title id="title">ClawShelf 主动研究循环</title>
-  <desc id="desc">五步循环持续监控文件变化、标准化内容、与资料架比较、判定 P1 或 P2 事件，并通过 Lark 发送更新。</desc>
+  <desc id="desc">文件更新后，ClawShelf 会整理内容、与已有资料比对、判定 P1 或 P2，并通过 Lark 发来通知。</desc>
   <defs>
     <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
       <feDropShadow dx="0" dy="9" stdDeviation="13" flood-color="#172033" flood-opacity=".07"/>
@@ -15,8 +15,8 @@
 
   <rect width="1400" height="760" rx="32" fill="#F8FAFC"/>
   <g font-family="'PingFang SC', 'Microsoft YaHei', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif">
-    <text x="700" y="73" text-anchor="middle" fill="#172033" font-size="40" font-weight="760" letter-spacing="-1">主动研究循环</text>
-    <text x="700" y="111" text-anchor="middle" fill="#65738A" font-size="20">只需激活一次，ClawShelf 就会持续监控、比较并报告。</text>
+    <text x="700" y="73" text-anchor="middle" fill="#172033" font-size="40" font-weight="760" letter-spacing="-1">ClawShelf 如何主动工作</text>
+    <text x="700" y="111" text-anchor="middle" fill="#65738A" font-size="20">激活一次，之后的监控、比对和通知都在后台完成。</text>
 
     <path d="M186 224H306M446 224H566M706 224H826M966 224H1086" fill="none" stroke="#9AA8BC" stroke-width="3" marker-end="url(#arrow)"/>
 
@@ -33,8 +33,8 @@
       <rect width="140" height="132" rx="22" fill="#FFFFFF" stroke="#DCE4EF" filter="url(#shadow)"/>
       <circle cx="70" cy="46" r="25" fill="#EAF0FF"/>
       <path d="M57 35h26v25H57zM62 41h16M62 47h16M62 53h11" fill="none" stroke="#3370FF" stroke-width="2.4" stroke-linecap="round"/>
-      <text x="70" y="94" text-anchor="middle" fill="#26344A" font-size="15" font-weight="750">提取并</text>
-      <text x="70" y="115" text-anchor="middle" fill="#6B7890" font-size="13">标准化</text>
+      <text x="70" y="94" text-anchor="middle" fill="#26344A" font-size="15" font-weight="750">读取并</text>
+      <text x="70" y="115" text-anchor="middle" fill="#6B7890" font-size="13">整理</text>
     </g>
 
     <g transform="translate(566 158)">
@@ -47,8 +47,8 @@
       <circle cx="70" cy="38" r="5" fill="#16B8A6"/>
       <circle cx="83" cy="51" r="5" fill="#16B8A6"/>
       <circle cx="80" cy="59" r="5" fill="#16B8A6"/>
-      <text x="70" y="94" text-anchor="middle" fill="#26344A" font-size="15" font-weight="750">与资料架</text>
-      <text x="70" y="115" text-anchor="middle" fill="#6B7890" font-size="13">比较</text>
+      <text x="70" y="94" text-anchor="middle" fill="#26344A" font-size="15" font-weight="750">和已有资料</text>
+      <text x="70" y="115" text-anchor="middle" fill="#6B7890" font-size="13">比对</text>
     </g>
 
     <g transform="translate(826 158)">
@@ -58,25 +58,25 @@
       <rect x="72" y="35" width="21" height="22" rx="7" fill="#EAF0FF" stroke="#BFD0FF"/>
       <text x="58.5" y="50" text-anchor="middle" fill="#FFFFFF" font-size="10" font-weight="800">P1</text>
       <text x="82.5" y="50" text-anchor="middle" fill="#3370FF" font-size="10" font-weight="800">P2</text>
-      <text x="70" y="94" text-anchor="middle" fill="#26344A" font-size="15" font-weight="750">判定</text>
-      <text x="70" y="115" text-anchor="middle" fill="#6B7890" font-size="13">事件级别</text>
+      <text x="70" y="94" text-anchor="middle" fill="#26344A" font-size="15" font-weight="750">判断</text>
+      <text x="70" y="115" text-anchor="middle" fill="#6B7890" font-size="13">通知类型</text>
     </g>
 
     <g transform="translate(1086 158)">
       <rect width="268" height="132" rx="22" fill="#FFFFFF" stroke="#BFD0FF" filter="url(#shadow)"/>
       <circle cx="52" cy="46" r="25" fill="#3370FF"/>
       <path d="M40 40h24v14H50l-7 6v-6h-3Z" fill="#FFFFFF"/>
-      <text x="88" y="41" fill="#172033" font-size="16" font-weight="750">通过 Lark 通知</text>
-      <text x="88" y="64" fill="#6B7890" font-size="13">绑定当前活跃渠道</text>
+      <text x="88" y="41" fill="#172033" font-size="16" font-weight="750">发到 Lark</text>
+      <text x="88" y="64" fill="#6B7890" font-size="13">回到当前对话</text>
       <rect x="28" y="86" width="212" height="28" rx="14" fill="#EEF3FF"/>
       <circle cx="45" cy="100" r="5" fill="#3370FF"/>
-      <text x="57" y="105" fill="#355784" font-size="12" font-weight="700">包含证据与来源链接</text>
+      <text x="57" y="105" fill="#355784" font-size="12" font-weight="700">附上证据和出处</text>
     </g>
 
     <path d="M1220 306V358C1220 402 1184 438 1140 438H178C134 438 98 474 98 518V540" fill="none" stroke="#3370FF" stroke-width="3" stroke-dasharray="8 9" marker-end="url(#blue-arrow)"/>
     <rect x="522" y="414" width="356" height="46" rx="23" fill="#EEF3FF"/>
     <circle cx="549" cy="437" r="7" fill="#3370FF"/>
-    <text x="568" y="444" fill="#2459D6" font-size="15" font-weight="750">每次发送后，监控器都会继续运行</text>
+    <text x="568" y="444" fill="#2459D6" font-size="15" font-weight="750">推送后继续监控</text>
 
     <g transform="translate(46 555)">
       <rect width="1308" height="150" rx="24" fill="#FFFFFF" stroke="#DCE4EF"/>
@@ -86,16 +86,16 @@
         <rect width="582" height="68" rx="16" fill="#FFF8EA" stroke="#F7D992"/>
         <rect x="18" y="18" width="48" height="32" rx="16" fill="#F59E0B"/>
         <text x="42" y="39" text-anchor="middle" fill="#FFFFFF" font-size="13" font-weight="800">P1</text>
-        <text x="84" y="30" fill="#6E4A00" font-size="15" font-weight="750">有证据支撑的联系</text>
-        <text x="84" y="51" fill="#8B6A27" font-size="13">关联来源、双向证据与候选想法</text>
+        <text x="84" y="30" fill="#6E4A00" font-size="15" font-weight="750">发现重要关联</text>
+        <text x="84" y="51" fill="#8B6A27" font-size="13">相关来源、两侧证据和候选研究思路</text>
       </g>
 
       <g transform="translate(636 57)">
         <rect width="642" height="68" rx="16" fill="#F1F5FF" stroke="#CAD7FF"/>
         <rect x="18" y="18" width="48" height="32" rx="16" fill="#FFFFFF" stroke="#BFD0FF"/>
         <text x="42" y="39" text-anchor="middle" fill="#3370FF" font-size="13" font-weight="800">P2</text>
-        <text x="84" y="30" fill="#284C82" font-size="15" font-weight="750">常规来源入库</text>
-        <text x="84" y="51" fill="#5E7393" font-size="13">来源名称与标准化关键论点，不声明跨来源联系</text>
+        <text x="84" y="30" fill="#284C82" font-size="15" font-weight="750">常规文件入库</text>
+        <text x="84" y="51" fill="#5E7393" font-size="13">文件名和内容要点，不作跨来源判断</text>
       </g>
     </g>
   </g>

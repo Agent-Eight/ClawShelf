@@ -69,6 +69,24 @@ inspect the evidence instead of trusting an unexplained suggestion.
   <img src="docs/assets/clawshelf-proactive-loop.svg" alt="ClawShelf continuously watches for changed files, normalizes them, compares them with the shelf, classifies P1 or P2 events, and delivers updates through Lark" width="100%">
 </p>
 
+## A neuron model for connected knowledge
+
+Think of every source on the shelf as a neuron. ClawShelf extracts two kinds of
+evidence-bearing signals from it:
+
+- **Axon signals** describe what the source can offer to other records, such as
+  an important finding, method, limitation, or transferable application.
+- **Dendrite signals** describe what could activate, complement, or challenge
+  the source, such as an assumption, boundary, evaluation condition, weakness,
+  or unfinished direction.
+
+When one source's axon signal fits another source's dendrite or axon signal,
+ClawShelf treats the pair as a candidate “synapse.” It then checks the evidence
+on both sides and the strength of the relationship instead of relying on
+keyword overlap alone. Strong validated connections can trigger proactive P1
+notifications. Run `/clawshelf overview` to inspect the sources, signals, and
+evidence in an interactive neuron-and-synapse map.
+
 ## Quick start
 
 ### 1. Install the prerequisites
@@ -165,20 +183,30 @@ status update and may ask you to confirm or adjust the inferred research plan.
 You can then leave the shelf running: as its contents change, ClawShelf will
 process the changes and bring relevant discoveries back to this conversation.
 
-### 5. Ask your first question
+### 5. Drop in files and receive proactive discoveries
 
-Use a slash command:
-
-```text
-/clawshelf search "What evidence supports the main recommendation?"
-```
-
-Or ask naturally:
+Copy, drag, or download a new report, paper, note, or spreadsheet into the
+activated source folder:
 
 ```text
-Compare the reports in this shelf. Summarize where they agree, where they
-conflict, and what evidence is still missing.
+project-research/
+├── meeting-notes.md
+├── market-report.pdf
+└── latest-report.pdf   ← newly added or downloaded
 ```
+
+You do not need to ask a question first. The background watcher automatically:
+
+1. Extracts and summarizes the new file.
+2. Compares it with the sources already on the shelf.
+3. Identifies connections, contradictions, evidence gaps, and possible next
+   steps.
+4. Completes routine intake and proactively notifies you in the current Lark
+   conversation when it finds an important connection.
+
+Run `/clawshelf refresh` when you want to check for changes immediately. You
+can still search or ask questions at any time, but ClawShelf's core value is
+that it keeps working even when you do not ask.
 
 ## Everyday use
 
