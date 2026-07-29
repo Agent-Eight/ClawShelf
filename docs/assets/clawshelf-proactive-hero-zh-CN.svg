@@ -1,0 +1,152 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">ClawShelf 主动式研究伙伴</title>
+  <desc id="desc">发生变化的研究文件会与资料架中的既有来源比较，并在 Lark 中生成有证据支撑的 P1 级发现。</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="12" stdDeviation="18" flood-color="#172033" flood-opacity=".08"/>
+    </filter>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#9AA8BC"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="900" rx="36" fill="#F8FAFC"/>
+  <circle cx="1460" cy="85" r="210" fill="#EAF0FF"/>
+  <circle cx="90" cy="835" r="190" fill="#EAF9F7"/>
+
+  <g font-family="'PingFang SC', 'Microsoft YaHei', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif">
+    <text x="92" y="104" fill="#3370FF" font-size="20" font-weight="700" letter-spacing="2">主动式研究伙伴</text>
+    <text x="92" y="172" fill="#172033" font-size="58" font-weight="760" letter-spacing="-1.8">让研究持续向前。</text>
+    <text x="92" y="219" fill="#5D6B82" font-size="24">ClawShelf 持续监控文件夹、连接新证据，并主动把发现带给你。</text>
+
+    <g transform="translate(78 302)">
+      <rect width="360" height="430" rx="28" fill="#FFFFFF" stroke="#DCE4EF" filter="url(#shadow)"/>
+      <rect x="28" y="26" width="94" height="32" rx="16" fill="#FFF4DE"/>
+      <circle cx="48" cy="42" r="6" fill="#F59E0B"/>
+      <text x="64" y="49" fill="#9A6500" font-size="14" font-weight="700">文件已变更</text>
+
+      <path d="M42 108c0-15 12-27 27-27h62l24 24h134c15 0 27 12 27 27v82c0 15-12 27-27 27H69c-15 0-27-12-27-27Z" fill="#EEF3FF" stroke="#C9D6FF"/>
+      <rect x="66" y="132" width="48" height="58" rx="9" fill="#FFFFFF" stroke="#D7E1F0"/>
+      <text x="90" y="166" text-anchor="middle" fill="#3370FF" font-size="12" font-weight="800">PDF</text>
+      <text x="132" y="153" fill="#172033" font-size="18" font-weight="700">latest-report.pdf</text>
+      <text x="132" y="181" fill="#6B7890" font-size="14">刚刚更新</text>
+      <circle cx="288" cy="115" r="7" fill="#F59E0B"/>
+
+      <text x="42" y="292" fill="#69778E" font-size="14" font-weight="700" letter-spacing="1.4">已有资料架</text>
+      <g transform="translate(42 316)">
+        <rect width="276" height="70" rx="15" fill="#F8FAFC" stroke="#DCE4EF"/>
+        <rect x="16" y="15" width="34" height="40" rx="7" fill="#EAF9F7"/>
+        <text x="33" y="40" text-anchor="middle" fill="#0D8F82" font-size="10" font-weight="800">MD</text>
+        <text x="64" y="31" fill="#26344A" font-size="15" font-weight="700">customer-interviews.md</text>
+        <text x="64" y="52" fill="#77849A" font-size="13">证据 · 决策 · 缺口</text>
+      </g>
+      <text x="42" y="414" fill="#6B7890" font-size="14">原始来源保持只读。</text>
+    </g>
+
+    <path d="M448 515H505" fill="none" stroke="#9AA8BC" stroke-width="3" marker-end="url(#arrow)"/>
+
+    <g transform="translate(520 270)">
+      <rect width="480" height="494" rx="30" fill="#FFFFFF" stroke="#DCE4EF" filter="url(#shadow)"/>
+      <g transform="translate(28 27)">
+        <rect width="148" height="42" rx="21" fill="#EDF2FF"/>
+        <path d="M20 15h20v14H20zM24 11h12l4 4H24z" fill="#3370FF"/>
+        <text x="52" y="28" fill="#2459D6" font-size="16" font-weight="750">ClawShelf</text>
+      </g>
+      <text x="28" y="111" fill="#172033" font-size="25" font-weight="750">正在后台工作</text>
+
+      <g transform="translate(28 140)">
+        <rect width="424" height="68" rx="15" fill="#F8FAFC"/>
+        <circle cx="34" cy="34" r="18" fill="#EAF0FF"/>
+        <text x="34" y="41" text-anchor="middle" fill="#3370FF" font-size="18" font-weight="800">1</text>
+        <text x="68" y="31" fill="#26344A" font-size="16" font-weight="700">提取并标准化</text>
+        <text x="68" y="52" fill="#758198" font-size="13">主张、证据、局限与源路径</text>
+        <circle cx="390" cy="34" r="9" fill="#16B8A6"/>
+        <path d="M386 34l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+
+      <g transform="translate(28 222)">
+        <rect width="424" height="68" rx="15" fill="#F8FAFC"/>
+        <circle cx="34" cy="34" r="18" fill="#EAF9F7"/>
+        <text x="34" y="41" text-anchor="middle" fill="#0D8F82" font-size="18" font-weight="800">2</text>
+        <text x="68" y="31" fill="#26344A" font-size="16" font-weight="700">跨资料架比较</text>
+        <text x="68" y="52" fill="#758198" font-size="13">发现与既有访谈证据的张力</text>
+        <circle cx="390" cy="34" r="9" fill="#16B8A6"/>
+        <path d="M386 34l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+      </g>
+
+      <g transform="translate(28 304)">
+        <rect width="424" height="68" rx="15" fill="#FFF8EA" stroke="#F7D992"/>
+        <circle cx="34" cy="34" r="18" fill="#F59E0B"/>
+        <text x="34" y="41" text-anchor="middle" fill="#FFFFFF" font-size="18" font-weight="800">3</text>
+        <text x="68" y="31" fill="#6E4A00" font-size="16" font-weight="750">有证据支撑的联系</text>
+        <text x="68" y="52" fill="#8B6A27" font-size="13">判定为 P1 级研究发现</text>
+        <rect x="356" y="20" width="48" height="28" rx="14" fill="#FFFFFF"/>
+        <text x="380" y="39" text-anchor="middle" fill="#B56F00" font-size="12" font-weight="800">P1</text>
+      </g>
+
+      <g transform="translate(28 405)">
+        <line x1="14" y1="25" x2="386" y2="25" stroke="#CBD5E3" stroke-width="2"/>
+        <circle cx="14" cy="25" r="8" fill="#3370FF"/>
+        <circle cx="196" cy="25" r="8" fill="#16B8A6"/>
+        <circle cx="386" cy="25" r="8" fill="#F59E0B"/>
+        <text x="14" y="55" text-anchor="middle" fill="#6B7890" font-size="12">新来源</text>
+        <text x="196" y="55" text-anchor="middle" fill="#6B7890" font-size="12">既有证据</text>
+        <text x="386" y="55" text-anchor="middle" fill="#6B7890" font-size="12">新洞察</text>
+      </g>
+    </g>
+
+    <path d="M1010 515H1067" fill="none" stroke="#9AA8BC" stroke-width="3" marker-end="url(#arrow)"/>
+
+    <g transform="translate(1080 248)">
+      <rect width="448" height="548" rx="30" fill="#FFFFFF" stroke="#DCE4EF" filter="url(#shadow)"/>
+      <rect width="448" height="78" rx="30" fill="#F1F5FF"/>
+      <circle cx="38" cy="39" r="20" fill="#3370FF"/>
+      <path d="M28 33h20v12H36l-6 5v-5h-2Z" fill="#FFFFFF"/>
+      <text x="72" y="37" fill="#172033" font-size="18" font-weight="750">Lark</text>
+      <text x="72" y="58" fill="#6B7890" font-size="13">ClawShelf 研究伙伴</text>
+      <circle cx="408" cy="39" r="6" fill="#16B8A6"/>
+
+      <g transform="translate(24 102)">
+        <rect width="400" height="408" rx="22" fill="#F8FAFC" stroke="#DCE4EF"/>
+        <g transform="translate(20 20)">
+          <rect width="62" height="28" rx="14" fill="#FFF1D6"/>
+          <text x="31" y="19" text-anchor="middle" fill="#A56600" font-size="12" font-weight="800">P1</text>
+          <text x="76" y="20" fill="#172033" font-size="17" font-weight="750">潜在研究联系</text>
+        </g>
+        <text x="20" y="84" fill="#26344A" font-size="15" font-weight="700">新来源</text>
+        <rect x="20" y="98" width="360" height="42" rx="10" fill="#FFFFFF" stroke="#DCE4EF"/>
+        <text x="36" y="125" fill="#425168" font-size="14" font-weight="650">latest-report.pdf · “留存率提高 18%”</text>
+
+        <text x="20" y="174" fill="#26344A" font-size="15" font-weight="700">为什么重要</text>
+        <text x="20" y="202" fill="#5F6D83" font-size="14">新结果与早前访谈中报告的</text>
+        <text x="20" y="224" fill="#5F6D83" font-size="14">流失驱动因素存在冲突。</text>
+
+        <g transform="translate(20 250)">
+          <rect width="360" height="92" rx="14" fill="#EAF9F7"/>
+          <circle cx="24" cy="25" r="8" fill="#16B8A6"/>
+          <text x="42" y="30" fill="#106E66" font-size="14" font-weight="750">匹配证据</text>
+          <text x="18" y="58" fill="#376C68" font-size="13">1. latest-report.pdf，结果</text>
+          <text x="18" y="78" fill="#376C68" font-size="13">2. customer-interviews.md，流失信号</text>
+        </g>
+
+        <g transform="translate(20 364)">
+          <path d="M0 10h14M0 10v-4M0 10v4" stroke="#3370FF" stroke-width="2" stroke-linecap="round"/>
+          <text x="24" y="15" fill="#3370FF" font-size="13" font-weight="700">打开来源链</text>
+          <text x="360" y="15" text-anchor="end" fill="#7A879C" font-size="12">已主动送达</text>
+        </g>
+      </g>
+    </g>
+
+    <g transform="translate(92 794)">
+      <rect width="248" height="44" rx="22" fill="#FFFFFF" stroke="#DCE4EF"/>
+      <circle cx="24" cy="22" r="6" fill="#3370FF"/>
+      <text x="42" y="28" fill="#425168" font-size="14" font-weight="700">监控文件变化</text>
+      <rect x="262" width="252" height="44" rx="22" fill="#FFFFFF" stroke="#DCE4EF"/>
+      <circle cx="286" cy="22" r="6" fill="#16B8A6"/>
+      <text x="304" y="28" fill="#425168" font-size="14" font-weight="700">连接相关证据</text>
+      <rect x="528" width="236" height="44" rx="22" fill="#FFFFFF" stroke="#DCE4EF"/>
+      <circle cx="552" cy="22" r="6" fill="#F59E0B"/>
+      <text x="570" y="28" fill="#425168" font-size="14" font-weight="700">主动带来发现</text>
+    </g>
+  </g>
+</svg>

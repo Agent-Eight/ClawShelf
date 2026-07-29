@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="760" viewBox="0 0 1400 760" role="img" aria-labelledby="title desc">
+  <title id="title">ClawShelf 来源追溯与本地优先存储</title>
+  <desc id="desc">只读原始文件会在 clawshelf 文件夹中形成可追溯来源的记录，Lark 通知会链接回具名证据。</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="9" stdDeviation="14" flood-color="#172033" flood-opacity=".07"/>
+    </filter>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+      <path d="M0 0L9 4.5L0 9Z" fill="#9AA8BC"/>
+    </marker>
+  </defs>
+
+  <rect width="1400" height="760" rx="32" fill="#F8FAFC"/>
+  <g font-family="'PingFang SC', 'Microsoft YaHei', Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif">
+    <text x="700" y="72" text-anchor="middle" fill="#172033" font-size="40" font-weight="760" letter-spacing="-1">让每条洞察都能追溯到来源</text>
+    <text x="700" y="110" text-anchor="middle" fill="#65738A" font-size="20">原始文件保持不变，生成的证据在旁边独立整理。</text>
+
+    <g transform="translate(48 158)">
+      <rect width="366" height="460" rx="26" fill="#FFFFFF" stroke="#DCE4EF" filter="url(#shadow)"/>
+      <rect width="366" height="70" rx="26" fill="#F1F4F8"/>
+      <path d="M28 28h22v17H28zM32 23h13l5 5H32z" fill="#6B7890"/>
+      <text x="64" y="43" fill="#26344A" font-size="18" font-weight="750">project-research/</text>
+      <rect x="260" y="22" width="78" height="28" rx="14" fill="#EAF9F7"/>
+      <text x="299" y="41" text-anchor="middle" fill="#0D8F82" font-size="11" font-weight="800">只读</text>
+
+      <g transform="translate(24 98)">
+        <rect width="318" height="72" rx="14" fill="#F8FAFC" stroke="#DCE4EF"/>
+        <rect x="16" y="14" width="36" height="44" rx="7" fill="#FFF1EE"/>
+        <text x="34" y="41" text-anchor="middle" fill="#DD5B4A" font-size="10" font-weight="800">PDF</text>
+        <text x="66" y="32" fill="#26344A" font-size="15" font-weight="700">latest-report.pdf</text>
+        <text x="66" y="53" fill="#77849A" font-size="12">结果 · 第 14 页</text>
+      </g>
+      <g transform="translate(24 184)">
+        <rect width="318" height="72" rx="14" fill="#F8FAFC" stroke="#DCE4EF"/>
+        <rect x="16" y="14" width="36" height="44" rx="7" fill="#EAF0FF"/>
+        <text x="34" y="41" text-anchor="middle" fill="#3370FF" font-size="10" font-weight="800">MD</text>
+        <text x="66" y="32" fill="#26344A" font-size="15" font-weight="700">customer-interviews.md</text>
+        <text x="66" y="53" fill="#77849A" font-size="12">流失信号 · 第 82 行</text>
+      </g>
+      <g transform="translate(24 270)">
+        <rect width="318" height="72" rx="14" fill="#F8FAFC" stroke="#DCE4EF"/>
+        <rect x="16" y="14" width="36" height="44" rx="7" fill="#EAF9F7"/>
+        <text x="34" y="41" text-anchor="middle" fill="#0D8F82" font-size="9" font-weight="800">XLSX</text>
+        <text x="66" y="32" fill="#26344A" font-size="15" font-weight="700">retention-model.xlsx</text>
+        <text x="66" y="53" fill="#77849A" font-size="12">群组 · Q2 工作表</text>
+      </g>
+      <g transform="translate(24 382)">
+        <circle cx="8" cy="8" r="8" fill="#16B8A6"/>
+        <path d="M4 8l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="26" y="14" fill="#58677E" font-size="13">不编辑、重命名、移动或删除。</text>
+      </g>
+    </g>
+
+    <path d="M426 388H484" fill="none" stroke="#9AA8BC" stroke-width="3" marker-end="url(#arrow)"/>
+
+    <g transform="translate(496 158)">
+      <rect width="408" height="460" rx="26" fill="#FFFFFF" stroke="#DCE4EF" filter="url(#shadow)"/>
+      <rect width="408" height="70" rx="26" fill="#EEF3FF"/>
+      <path d="M28 28h22v17H28zM32 23h13l5 5H32z" fill="#3370FF"/>
+      <text x="64" y="43" fill="#26344A" font-size="18" font-weight="750">project-research/clawshelf/</text>
+
+      <g transform="translate(24 94)">
+        <rect width="360" height="60" rx="14" fill="#F8FAFC" stroke="#DCE4EF"/>
+        <circle cx="28" cy="30" r="12" fill="#EAF0FF"/>
+        <path d="M21 27h14v10H21zM24 23h8l3 4H24z" fill="#3370FF"/>
+        <text x="52" y="27" fill="#26344A" font-size="14" font-weight="700">normalized/</text>
+        <text x="52" y="45" fill="#77849A" font-size="11">可追溯来源的 Markdown 记录</text>
+      </g>
+
+      <g transform="translate(24 166)">
+        <rect width="360" height="92" rx="14" fill="#EAF9F7" stroke="#B8E9E3"/>
+        <circle cx="28" cy="28" r="9" fill="#16B8A6"/>
+        <path d="M24 28l3 3 6-7" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <text x="48" y="32" fill="#106E66" font-size="14" font-weight="750">证据卡 01</text>
+        <text x="18" y="60" fill="#376C68" font-size="12">latest-report.pdf · 结果 · 第 14 页</text>
+        <text x="18" y="79" fill="#376C68" font-size="12">受测群组的留存率提高了 18%。</text>
+      </g>
+
+      <g transform="translate(24 270)">
+        <rect width="360" height="92" rx="14" fill="#EEF3FF" stroke="#CAD7FF"/>
+        <circle cx="28" cy="28" r="9" fill="#3370FF"/>
+        <text x="28" y="33" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">2</text>
+        <text x="48" y="32" fill="#284C82" font-size="14" font-weight="750">证据卡 02</text>
+        <text x="18" y="60" fill="#506A91" font-size="12">customer-interviews.md · 流失信号</text>
+        <text x="18" y="79" fill="#506A91" font-size="12">用户仍将上手摩擦视为风险。</text>
+      </g>
+
+      <g transform="translate(24 395)">
+        <rect width="360" height="40" rx="12" fill="#FFF8EA"/>
+        <circle cx="20" cy="20" r="6" fill="#F59E0B"/>
+        <text x="36" y="25" fill="#79540F" font-size="12" font-weight="700">生成内容始终保存在此文件夹中。</text>
+      </g>
+    </g>
+
+    <path d="M916 388H974" fill="none" stroke="#9AA8BC" stroke-width="3" marker-end="url(#arrow)"/>
+
+    <g transform="translate(986 158)">
+      <rect width="366" height="460" rx="26" fill="#FFFFFF" stroke="#CAD7FF" filter="url(#shadow)"/>
+      <rect width="366" height="70" rx="26" fill="#F1F5FF"/>
+      <circle cx="36" cy="35" r="19" fill="#3370FF"/>
+      <path d="M26 29h20v12H34l-6 5v-5h-2Z" fill="#FFFFFF"/>
+      <text x="68" y="34" fill="#172033" font-size="17" font-weight="750">Lark</text>
+      <text x="68" y="53" fill="#6B7890" font-size="12">ClawShelf 通知</text>
+
+      <g transform="translate(20 92)">
+        <rect width="326" height="326" rx="18" fill="#F8FAFC" stroke="#DCE4EF"/>
+        <rect x="18" y="18" width="46" height="26" rx="13" fill="#F59E0B"/>
+        <text x="41" y="36" text-anchor="middle" fill="#FFFFFF" font-size="11" font-weight="800">P1</text>
+        <text x="76" y="36" fill="#172033" font-size="14" font-weight="750">潜在联系</text>
+
+        <text x="18" y="78" fill="#26344A" font-size="13" font-weight="700">为什么推送</text>
+        <text x="18" y="101" fill="#5F6D83" font-size="12">测得的留存提升与持续存在的</text>
+        <text x="18" y="119" fill="#5F6D83" font-size="12">上手摩擦证据相冲突。</text>
+
+        <line x1="18" y1="145" x2="308" y2="145" stroke="#DCE4EF"/>
+        <text x="18" y="174" fill="#26344A" font-size="13" font-weight="700">来源链</text>
+
+        <g transform="translate(18 190)">
+          <rect width="290" height="45" rx="10" fill="#EAF9F7"/>
+          <circle cx="18" cy="22.5" r="6" fill="#16B8A6"/>
+          <text x="32" y="19" fill="#376C68" font-size="11" font-weight="700">latest-report.pdf</text>
+          <text x="32" y="34" fill="#56807D" font-size="10">结果 · 第 14 页</text>
+        </g>
+        <g transform="translate(18 245)">
+          <rect width="290" height="45" rx="10" fill="#EEF3FF"/>
+          <circle cx="18" cy="22.5" r="6" fill="#3370FF"/>
+          <text x="32" y="19" fill="#506A91" font-size="11" font-weight="700">customer-interviews.md</text>
+          <text x="32" y="34" fill="#6880A2" font-size="10">流失信号 · 第 82 行</text>
+        </g>
+        <text x="18" y="312" fill="#3370FF" font-size="11" font-weight="750">打开证据，而不是相信黑箱。</text>
+      </g>
+    </g>
+
+    <g transform="translate(120 657)">
+      <rect width="1160" height="54" rx="27" fill="#FFFFFF" stroke="#DCE4EF"/>
+      <circle cx="28" cy="27" r="7" fill="#16B8A6"/>
+      <text x="48" y="33" fill="#425168" font-size="14" font-weight="700">来源始终只读</text>
+      <line x1="262" y1="14" x2="262" y2="40" stroke="#DCE4EF"/>
+      <circle cx="294" cy="27" r="7" fill="#3370FF"/>
+      <text x="314" y="33" fill="#425168" font-size="14" font-weight="700">生成内容保存在 clawshelf/ 下</text>
+      <line x1="628" y1="14" x2="628" y2="40" stroke="#DCE4EF"/>
+      <circle cx="660" cy="27" r="7" fill="#F59E0B"/>
+      <text x="680" y="33" fill="#425168" font-size="14" font-weight="700">仅保存路由标识，不保存服务商密钥或令牌</text>
+    </g>
+  </g>
+</svg>

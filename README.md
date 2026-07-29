@@ -1,5 +1,7 @@
 # ClawShelf
 
+[English](README.md) | [简体中文](README.zh-CN.md)
+
 ClawShelf turns a folder of notes, PDFs, spreadsheets, and articles into a
 **proactive research companion**. Instead of waiting for you to search, it
 watches the folder, processes new material, connects it with what you already
