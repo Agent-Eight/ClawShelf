@@ -1,0 +1,4 @@
+.DS_Store
+.clawhub/
+.venv/
+__pycache__/

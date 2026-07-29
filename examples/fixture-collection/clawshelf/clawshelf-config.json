@@ -1,0 +1,24 @@
+{
+  "schema": "clawshelf.config",
+  "notification_policy": "p1_p2",
+  "creativity_scoring": {
+    "mode": "auto",
+    "model": "",
+    "novelty_preference": 0.5,
+    "candidate_limit": 10,
+    "semantic_retrieval": "auto",
+    "semantic_candidate_target": 3,
+    "advanced": {
+      "threshold": 13,
+      "min_confidence": 0.65
+    }
+  },
+  "shelf_plan": {
+    "domain_background": "unknown",
+    "work_direction": "literature review",
+    "concrete_problem": "organize and cite sources",
+    "collection_pattern": "project-by-project archive",
+    "companion_mode": "research secretary"
+  },
+  "delivery_binding": null
+}

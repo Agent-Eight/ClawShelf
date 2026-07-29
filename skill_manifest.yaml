@@ -1,0 +1,120 @@
+id: openclaw.clawshelf
+version: 0.1.0
+license: Apache-2.0
+intended_use:
+  summary: Local document-shelf normalization, source-traceable retrieval, knowledge mapping, and proactive idea generation.
+  scope: internal development and evaluation
+  not_for:
+    - autonomous investment decisions
+    - clinical or legal advice
+    - broad web crawling
+    - source-file modification
+inputs:
+  - name: input_root
+    type: directory_path
+    formats: [markdown, text, pdf, xlsx, url-list, mixed-local-files]
+  - name: shelf_plan
+    type: object
+    optional: true
+outputs:
+  - name: normalized_records
+    type: markdown_files
+    path: "<input_root>/clawshelf/normalized/*.md"
+  - name: metadata
+    type: markdown_file
+    path: "<input_root>/clawshelf/clawshelf-metadata.md"
+  - name: brief
+    type: markdown_file
+    path: "<input_root>/clawshelf/clawshelf-brief.md"
+    optional: true
+  - name: overview
+    type: html_file
+    path: "<input_root>/clawshelf/clawshelf-overview.html"
+    optional: true
+    self_contained: true
+  - name: watch_event
+    type: json_file
+    path: "<input_root>/clawshelf/events/*.json"
+    optional: true
+  - name: watch_notification
+    type: json_file
+    path: "<input_root>/clawshelf/notifications/*.notification.json"
+    optional: true
+runtime:
+  language: python
+  entrypoint: scripts/extract-source.py
+  overview_command: scripts/render-overview.py
+  watch:
+    auto_enable_when_installed_in_openclaw_agent: true
+    use_command: scripts/openclaw-use.py
+    command: scripts/openclaw-watch-adapter.py
+    raw_event_command: scripts/watch-shelf.py
+    event_schema: clawshelf.watch-event
+    event_dir: "<input_root>/clawshelf/events"
+    notification_schema: clawshelf.notification
+    notification_dir: "<input_root>/clawshelf/notifications"
+    push_policy:
+      P1: notify
+      P2: notify
+    requires_explicit_folder: true
+  python: ">=3.11"
+  dependencies:
+    html2text: ">=2024.2.26"
+    openpyxl: ">=3.1.5,<4"
+    pypdf: ">=6.0.0,<7"
+    watchfiles: ">=1.1.0,<2"
+  side_effects:
+    local_writes:
+      - path: "<input_root>/clawshelf/"
+        purpose: generated normalized records, metadata, optional brief, and optional overview
+    source_file_writes: []
+    home_writes: []
+    network_endpoints:
+      - "explicit user-provided URLs only"
+    requires_docker: false
+    requires_gpu: none
+    env_required: []
+  vendored:
+    - path: scripts/clawshelf/vendor/d3.min.js
+      version: "7.9.0"
+      sha256: f2094bbf6141b359722c4fe454eb6c4b0f0e42cc10cc7af921fc158fceb86539
+      license: ISC
+      purpose: inlined into clawshelf-overview.html so it renders with no network access
+    - path: scripts/clawshelf/vendor/d3-force-3d.min.js
+      version: "3.0.6"
+      sha256: 412b4aadc3218aa65de10b70ba3324dd365d4bf7a061299fa682f530e8506ee9
+      license: MIT
+      purpose: powers the optional 3D toggle in clawshelf-overview.html, off by default
+    - path: scripts/clawshelf/vendor/d3-octree.min.js
+      version: "1.1.0"
+      sha256: 62c23034a7a7e9c3d5cb3118e108ac82ceffed0351f2d7b6400ddc66cd2643a2
+      license: MIT
+      purpose: d3-force-3d dependency, powers the optional 3D toggle
+    - path: scripts/clawshelf/vendor/d3-binarytree.min.js
+      version: "1.0.2"
+      sha256: 34ee89660516611365de94ab44ff8e06d968f6bfb7b3772667d12793a4bc5b57
+      license: MIT
+      purpose: d3-force-3d dependency, powers the optional 3D toggle
+limitations:
+  - QMD is a backend retrieval dependency, not the user interface.
+  - URL extraction fetches only explicitly provided URLs and does not crawl.
+  - Scanned PDFs without selectable text may need OCR outside the built-in extraction pipeline.
+  - Shelf configuration and inferred onboarding answers are persisted in `<input_root>/clawshelf/clawshelf-config.json`.
+  - The interactive overview embeds a pinned copy of D3 (ISC license, sha256-checked on every render); each generated file is roughly 350 KB.
+validation:
+  local_commands:
+    - "./scripts/run-fixtures.sh"
+    - "uv run --locked python -m unittest discover -s tests"
+    - "uv run --locked python scripts/openclaw-watch-adapter.py <quant-trading-test-folder> --once <p1-test-file>"
+  expected_behavior:
+    - Writes stay under "<input_root>/clawshelf/".
+    - Unsupported unreadable files are skipped instead of guessed from names.
+    - Factual claims cite source records or original sources.
+    - Idea generation labels speculation and confidence.
+    - Installed OpenClaw agents expose /clawshelf watch automatically, but only watch an explicit folder.
+    - /clawshelf use checks watcher state and auto-starts watch for ready folders when no watcher exists.
+    - OpenClaw watcher delivery prefers the session key captured when /clawshelf use enables the watcher.
+    - P1 and P2 watch events produce enabled notification records by default; `p1_only` keeps P2 log-only.
+    - Watch delivery does not store provider-specific channel targets in shelf data.
+    - /clawshelf overview writes one HTML artifact on explicit invocation and never refreshes it from watch intake.
+    - The overview HTML loads no external subresources.

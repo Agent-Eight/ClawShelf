@@ -1,0 +1,16 @@
+[project]
+name = "clawshelf-tools"
+version = "0.1.0"
+description = "Deterministic source extraction helpers for ClawShelf"
+requires-python = ">=3.11"
+dependencies = [
+  "html2text>=2024.2.26",
+  "openpyxl>=3.1.5,<4",
+  "pypdf>=6.0.0,<7",
+  "pymupdf>=1.28,<1.29",
+  "pymupdf4llm>=1.28,<1.29",
+  "watchfiles>=1.1.0,<2",
+]
+
+[tool.uv]
+package = false

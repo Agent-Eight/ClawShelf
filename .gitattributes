@@ -1,0 +1,4 @@
+*.pdf binary
+*.xlsx binary
+scripts/clawshelf/vendor/* linguist-vendored
+scripts/clawshelf/vendor/*.min.js -diff
