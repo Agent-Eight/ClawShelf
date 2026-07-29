@@ -1,72 +1,79 @@
 # ClawShelf
 
-ClawShelf turns a growing folder of notes, PDFs, spreadsheets, and articles into
-a proactive research and file-management companion. It summarizes and archives
-source material, keeps a modular knowledge map searchable through your active
-harness, and proposes source-backed ideas as new files arrive.
+ClawShelf turns a folder of notes, PDFs, spreadsheets, and articles into an
+ongoing research companion. It builds a source-traceable library, answers
+questions across your files, highlights contradictions and gaps, and suggests
+useful connections as the collection grows.
 
-Use it when you want more than a one-off summary: you want a durable shelf that
-remembers what the files say, shows where evidence came from, and acts like a
-research secretary that can point out links, gaps, contradictions, and promising
-next directions.
+Your original files stay untouched. ClawShelf keeps everything it creates in a
+separate `clawshelf/` folder beside your sources.
 
-## Three functions
+## Who ClawShelf is for
 
-1. **Content summarization and archiving** — every inspected source becomes a
-   stable Markdown record with summary, claims, evidence, source path, hash, and
-   confidence.
-2. **Modular search and knowledge map** — the shelf is organized by topics,
-   claims, methods, tensions, gaps, and source clusters. Users ask natural
-   language questions through Lark, Feishu, WeChat, Claude, Codex, OpenClaw, or
-   another harness; QMD stays behind the scenes.
-3. **Proactive idea generation** — when the collection changes, ClawShelf looks
-   for new insight, changed conclusions, cross-source relationships, and the
-   best next research direction. This is the core companion behavior.
+ClawShelf is useful when you have more material than you can reliably keep in
+your head and want more than one-off summaries. For example:
 
-## Architecture
+- Researchers comparing papers, methods, evidence, and open questions.
+- Product and market teams organizing reports, interviews, and meeting notes.
+- Engineers tracking decisions, experiments, benchmarks, and technical risks.
+- Writers building source-backed arguments and finding missing citations.
+- Analysts watching a folder for new evidence, changed conclusions, or useful
+  cross-source connections.
 
-```mermaid
-flowchart LR
-    S["Local sources"] --> E["Extractor registry"]
-    E -->|"PDF"| P["PyMuPDF4LLM structured Markdown"]
-    E -->|"other supported"| N["Section-aware LLM normalizer"]
-    P --> N
-    E -->|"unsupported"| F["LLM fallback"] --> N
-    N --> M["clawshelf/normalized/*.md"]
-    M --> K["Knowledge map + QMD retrieval"]
-    K --> A["Archive, map, and idea artifacts"]
-```
+## What it does
 
-The input folder is read-only. ClawShelf writes only below `<input>/clawshelf/`:
-
-```text
-<input>/
-└── clawshelf/
-    ├── normalized/                # one source-traceable Markdown record/source
-    ├── clawshelf-metadata.md       # archive and source inventory
-    ├── clawshelf-brief.md          # knowledge map, synthesis, idea cards
-    └── clawshelf-overview.html     # interactive neuron/synapse map of the shelf
-```
+- **Builds a durable source library.** Each inspected file becomes a searchable
+  Markdown record with a summary, evidence, limitations, source path, and
+  confidence.
+- **Answers questions across files.** Search the whole shelf in natural language
+  and receive concise answers grounded in the original material.
+- **Connects related evidence.** Ask ClawShelf to explain agreements,
+  contradictions, gaps, and relationships between sources.
+- **Suggests next directions.** Generate briefs and source-backed ideas for what
+  to investigate, test, read, or write next.
+- **Keeps up with a growing folder.** New and changed files are processed in the
+  background after you activate a shelf.
+- **Creates an interactive overview.** Generate a self-contained local HTML map
+  for exploring sources and their connections.
 
 ## Quick start
 
-### 1. Install the skill
+### 1. Check the prerequisites
 
-From your OpenClaw environment, install ClawShelf from its local directory:
+You need:
+
+- OpenClaw with permission to read your source folder and run local commands.
+- Python 3.11 or later and [`uv`](https://docs.astral.sh/uv/).
+- Node.js 22 or later for the search backend.
+- On macOS, Homebrew SQLite (`brew install sqlite`) if prompted.
+
+OpenClaw can offer to install `uv` and the search backend when the skill needs
+them.
+
+### 2. Install ClawShelf from GitHub
 
 ```bash
-openclaw skills install /path/to/ClawShelf
+openclaw skills install git:https://github.com/Agent-Eight/ClawShelf.git --as clawshelf
 openclaw skills info clawshelf
 ```
 
-Start a new OpenClaw session after installation. ClawShelf will prompt for, or
-install, its required tools (`uv` and QMD) when needed. On macOS, you may also
-need `brew install sqlite` if prompted.
+This installs ClawShelf for the current OpenClaw agent. Add `--global` to the
+install command if you want it available from the shared skills directory.
 
-### 2. Put files in a local folder
+Start a new OpenClaw session after installation so the skill and its commands
+are discovered.
 
-Create or choose a local folder containing the documents you want to research.
-For example:
+If you already downloaded the repository, you can install that local folder
+instead:
+
+```bash
+openclaw skills install /path/to/ClawShelf --as clawshelf
+```
+
+### 3. Choose a folder of source material
+
+Create or select a local folder containing the material you want ClawShelf to
+work with:
 
 ```text
 project-research/
@@ -75,150 +82,233 @@ project-research/
 └── budget.xlsx
 ```
 
-Your source files remain read-only. ClawShelf creates its own workspace inside
-that folder at `project-research/clawshelf/`.
+Use the source folder itself, not a `clawshelf/` subfolder.
 
-### 3. Use the folder
+### 4. Activate the shelf
 
-In a new OpenClaw session, invoke the skill with a slash command or ask
-naturally. ClawShelf supports English and Chinese responses; by default it uses
-the language of your latest message.
-
-Set the working folder for the current chat/session:
+In OpenClaw, run:
 
 ```text
-/clawshelf use /path/to/project-research
+/clawshelf use /absolute/path/to/project-research
 ```
 
-This is the normal first command. It checks whether that exact folder is ready,
-creates any missing shelf structure, and starts the watcher. The command reports
-pending sources without blocking on model work; the watcher reconciles them in
-the background. Quick onboarding infers a Shelf
-Plan from folder names, files, and the current request, pre-fills all five
-onboarding fields, and asks you to confirm or edit the result. Unanswered
-fields stay `unknown`, so setup does not block on a blank form.
+ClawShelf will:
 
-Then search or update the shelf:
+1. Set this as the shelf for the current session.
+2. Create the shelf workspace if it does not exist.
+3. Infer a starting research plan from the folder and your request.
+4. Report files waiting to be processed.
+5. Start watching the folder for new and changed files.
+
+Initial processing continues in the background. ClawShelf will show a compact
+status update and may ask you to confirm or adjust the inferred research plan.
+
+### 5. Ask your first question
+
+Use a slash command:
 
 ```text
-/clawshelf search "evidence about liquidity risk"
-/clawshelf graph "retail trading flow"
-/clawshelf overview
-/clawshelf explain "crowded trades"
-/clawshelf refresh
+/clawshelf search "What evidence supports the main recommendation?"
 ```
-
-Advanced users may still run `/clawshelf status`, `/clawshelf onboard`, or
-`/clawshelf repair` directly. They are not required for the normal first run.
-
-For developer/debug runs, the watcher can still be started manually:
-
-```text
-/clawshelf watch /path/to/project-research
-```
-
-When ClawShelf is installed in an OpenClaw agent, the watch capability is
-enabled automatically; the folder still has to be explicit through
-`/clawshelf use`. The watcher records P1/P2 events under
-`project-research/clawshelf/events/`. P1 means the source has a scored,
-source-backed creative relationship to existing shelf records. P2 means the
-source completed intake without clearing every P1 quality gate and also
-notifies by default. Set
-`notification_policy` to `p1_only` to retain P2 records without delivering
-them. Notification destinations are decided by the host environment rather than
-hard-coded by ClawShelf. `/clawshelf use` binds the originating OpenClaw agent,
-channel, canonical session, owner-DM target, and account as one route; all
-watcher scoring and notification turns reuse that same agent.
-
-Each shelf stores its behavior in `<shelf>/clawshelf/clawshelf-config.json`. Set
-`notification_policy` defaults to `p1_p2`; set it to `p1_only` for P1-only
-delivery. `creativity_scoring` controls candidate limits, host scoring, and
-`novelty_preference` from 0 (strong overlap) to 1 (evidence-backed novelty).
-Its `semantic_retrieval` setting (`auto`, `off`, or `required`) enables a small
-QMD vector fallback only when deterministic recall has fewer than
-`semantic_candidate_target` candidates (default 3). Vector similarity is audit
-metadata, not a creativity score or a P1 signal; the normal score, confidence,
-verdict, and bidirectional-evidence gates still decide P1/P2.
-The same file exposes `delivery_binding` with the bound `agent`, canonical
-`session`, `channel`, owner-DM `target`, and `account`. These are routing
-identifiers, not credentials; app secrets and tokens are never stored. After
-editing all five consistently, run `/clawshelf reset <folder>` to apply the
-new route.
-The advanced `threshold` and `min_confidence` settings are the final P1 quality
-gates. A P1 also requires a `p1_candidate` verdict and evidence from both
-records; an unscored intake records `creativity_score: null`, never a fake zero.
-
-Useful switches and helpers:
-
-- `/clawshelf language <auto|en|zh>` — choose response language.
-- `/clawshelf pwd` — show the current working folder.
-- `/clawshelf folders` — list known or recently used shelves.
-- Add `--lang en`, `--lang zh`, or `--lang auto` to override one command.
 
 Or ask naturally:
 
 ```text
-Analyze /path/to/project-research. I am researching retail trading flow and
-crowded trades. Build the shelf, map the themes, and suggest the strongest next
-research direction.
+Compare the reports in this shelf. Summarize where they agree, where they
+conflict, and what evidence is still missing.
 ```
 
-For the full command contract, see
-[references/commands.md](references/commands.md).
+## Everyday use
 
-### What to expect
+| What you want to do | Example |
+| --- | --- |
+| Search across sources | `/clawshelf search "evidence about liquidity risk"` |
+| Explain a topic or claim | `/clawshelf explain "crowded trades"` |
+| Create a synthesis brief | `/clawshelf brief "What should I investigate next?"` |
+| Generate source-backed ideas | `/clawshelf ideas` |
+| Refresh after changing files | `/clawshelf refresh` |
+| Create the interactive map | `/clawshelf overview` |
+| List indexed sources | `/clawshelf sources` |
+| Check shelf health | `/clawshelf status` |
+| Show the active folder | `/clawshelf pwd` |
+| List known shelves | `/clawshelf folders` |
 
-ClawShelf will inspect the documents, extract and normalize their content, and
-create the following outputs under `<your-folder>/clawshelf/`:
+You can also describe the outcome you want in ordinary language. For example:
 
-- `normalized/` — one source-traceable Markdown record for each processed file.
-  Records include an executive summary, paper role in the shelf, research
-  question, method/data/setting, evidence-backed claims, limitations, RAG terms,
-  axon/dendrite idea signals, and connection hooks.
-  Limitations are split into universal `Use Conditions` and
-  `Improvement Directions`, so every research article states both how it can be
-  used safely and how the work could be strengthened.
-- `clawshelf-metadata.md` — archive and source inventory: sources, topics,
-  coverage, claims, methods, usefulness, and confidence.
-- `clawshelf-brief.md` — knowledge map, evidence-backed synthesis, tensions,
-  gaps, reusable concepts, idea cards, and next research directions. It is
-  created when synthesis or proactive analysis is useful, not on every setup.
-- `clawshelf-overview.html` — an on-demand interactive neuron/synapse map:
-  every normalized source is a neuron drawn with its dendrite and axon
-  signals, synapses join evidence-backed signal pairs (plus a stronger
-  confirmed class for validated P1 idea sparks), and semantic similarity keeps
-  related sources close. It embeds its rendering library, so it is fully
-  self-contained and is regenerated only by `/clawshelf overview`.
+- “Find contradictions about customer retention.”
+- “What changed after I added the latest report?”
+- “Which claims have the strongest evidence?”
+- “Turn these papers into a literature-review brief.”
+- “Suggest the most promising next research direction.”
 
-It also reports which files were processed or skipped, key findings, and any
-limitations. Markdown, text, PDFs, `.xlsx` workbooks, and individual URLs have
-built-in extraction; PDFs are converted to section-aware Markdown before
-normalization. Other readable local files may use a fallback path. Image-only
-PDFs attempt OCR, but unsupported scripts or unavailable OCR data may still
-need additional handling.
+Most commands accept an optional folder. After `/clawshelf use`, you can
+normally omit it for the rest of that session.
 
-After setup, search naturally:
+## When the folder changes
 
-- "Search this shelf for evidence about liquidity risk."
-- "Find contradictions about retail flow."
-- "What changed after I added these new papers?"
-- "What is the best next research direction?"
+Activating a shelf starts its background watcher. When you add or change a
+supported source, ClawShelf can send:
 
-For implementation details, see [docs/skill-design.md](docs/skill-design.md).
-For the planned idea-generation layer, see
-[docs/idea-generation-method.md](docs/idea-generation-method.md).
+- A short confirmation that the source was archived.
+- A richer update when the new material creates a useful, evidence-backed
+  connection with the existing shelf.
+
+Both types of updates are enabled by default. Advanced users can keep routine
+archive updates in the shelf without receiving them as notifications; see the
+[command reference](references/commands.md) for the notification setting.
+
+Run `/clawshelf refresh` whenever you want to check for changes immediately.
+Use `/clawshelf repair` if ClawShelf reports that a shelf is incomplete or
+damaged.
+
+## Supported sources
+
+ClawShelf has built-in extraction for:
+
+| Source | Notes |
+| --- | --- |
+| Markdown | `.md` files |
+| Plain text | `.txt` files |
+| PDF | Text is converted into section-aware Markdown |
+| Excel workbooks | `.xlsx` files, including individual sheets |
+| Web pages | Only URLs you explicitly provide |
+
+Other readable local files may work through the active agent's file-reading
+tools. ClawShelf skips files it cannot read instead of guessing from their
+names.
+
+## What ClawShelf creates
+
+All generated content stays under `<your-folder>/clawshelf/`:
+
+```text
+project-research/
+├── meeting-notes.md
+├── market-report.pdf
+├── budget.xlsx
+└── clawshelf/
+    ├── normalized/
+    ├── clawshelf-metadata.md
+    ├── clawshelf-brief.md
+    └── clawshelf-overview.html
+```
+
+| Output | Purpose |
+| --- | --- |
+| `normalized/` | One source-traceable Markdown record for each processed source |
+| `clawshelf-metadata.md` | Source inventory, topics, coverage, claims, and confidence |
+| `clawshelf-brief.md` | Optional synthesis, contradictions, gaps, ideas, and next directions |
+| `clawshelf-overview.html` | Optional interactive map generated by `/clawshelf overview` |
+
+The brief is created only when synthesis is useful or requested. The overview
+is generated only when you ask for it, opens locally, and does not need a web
+server or an internet connection.
+
+## Language and notifications
+
+ClawShelf supports English and Chinese. Its default `auto` mode follows the
+language of your latest message.
+
+```text
+/clawshelf language en
+/clawshelf language zh
+/clawshelf language auto
+```
+
+You can also add `--lang en`, `--lang zh`, or `--lang auto` to override a
+single command.
+
+Background updates are delivered through the OpenClaw agent and conversation
+where you activated the shelf. ClawShelf stores routing information, but never
+provider passwords, API keys, or access tokens, in the shelf.
+
+## Privacy and safety
+
+- Source files are read-only; ClawShelf does not edit, rename, move, or delete
+  them.
+- Generated files are written only inside the source folder's `clawshelf/`
+  directory.
+- URL extraction fetches only the exact pages you provide and does not crawl
+  links.
+- Local-only collections can stay local. Network access is needed only for
+  user-provided URLs and any services used by the active agent.
+- Answers and suggestions identify their supporting sources and distinguish
+  evidence from speculation.
+
+ClawShelf can support research and decision-making, but it is not a substitute
+for professional legal, medical, or financial advice and should not make
+autonomous high-stakes decisions.
+
+## Known limitations
+
+- Image-only or heavily scanned PDFs may need external OCR, especially for
+  unsupported scripts or poor-quality scans.
+- Password-protected, corrupted, or unsupported files may be skipped.
+- Spreadsheet extraction reads workbook content but does not reproduce complex
+  interactive Excel behavior.
+- Web-page extraction does not sign in, bypass paywalls, or follow links.
+- Generated summaries and ideas should be checked against the cited sources
+  before important use.
+- Other agent harnesses may use ClawShelf, but installation, command discovery,
+  and local-file permissions vary by harness.
+
+## Troubleshooting
+
+### ClawShelf is not available after installation
+
+Start a new OpenClaw session, then verify the installation:
+
+```bash
+openclaw skills info clawshelf
+openclaw skills check
+```
+
+### A required tool is missing
+
+Confirm that `uv` and Node.js 22 or later are installed. On macOS, install
+Homebrew SQLite if requested:
+
+```bash
+brew install uv sqlite
+```
+
+ClawShelf's setup scripts install the compatible search backend when needed.
+
+### ClawShelf is using the wrong folder
+
+Select the exact source folder again:
+
+```text
+/clawshelf use /absolute/path/to/the/source-folder
+```
+
+Use `/clawshelf pwd` to confirm the active shelf or `/clawshelf folders` to see
+known shelves.
+
+### Files are missing from search
+
+Run `/clawshelf status`, then `/clawshelf refresh`. Check that the files use a
+supported format and that OpenClaw has permission to read them. If the status
+reports a partial shelf, run `/clawshelf repair`.
+
+### The interactive overview does not open from chat
+
+Some chat channels block local `file://` links. Open the reported
+`clawshelf-overview.html` path directly on the computer that owns the shelf, or
+ask the agent to attach the HTML file.
+
+## Documentation
+
+- [Full command reference](references/commands.md)
+- [Architecture and skill design](docs/skill-design.md)
+- [Compatibility with other agent harnesses](references/harness-compatibility.md)
+- [Idea-generation method](docs/idea-generation-method.md)
+- [Release history](CHANGELOG.md)
+- [Security and responsible disclosure](SECURITY.md)
 
 ## License
 
-Copyright 2026 ClawShelf. Licensed under the MIT License.
-See [LICENSE](LICENSE) and [NOTICE](NOTICE).
+Copyright 2026 ClawShelf.
 
-See [CHANGELOG.md](CHANGELOG.md) for release history and
-[SECURITY.md](SECURITY.md) for responsible-disclosure guidance.
-
-## Other harnesses
-
-Codex, Claude Code, OpenCode, and similar harnesses can use the same skill
-instructions and scripts when they meet the capability requirements in
-[references/harness-compatibility.md](references/harness-compatibility.md).
-Their skill installation/discovery mechanism is harness-specific.
+Licensed under the [MIT License](LICENSE). Third-party notices are listed in
+[NOTICE](NOTICE).

@@ -6,32 +6,65 @@ ClawShelf turns a local document collection into a source-traceable research and
 file-management companion. OpenClaw is the reference harness, but the workflow
 is portable to Codex, Claude Code, OpenCode, and comparable harnesses.
 
-See [`docs/jtbd.md`](jtbd.md) for the job this skill is hired to do, what's
-explicitly out of scope, and the backlog of jobs it doesn't serve yet. This
-doc covers the *how*; that one covers the *why*.
-
 ## Architecture
 
 ```mermaid
 flowchart LR
-    S["Local sources"] --> E["Extractor registry"]
-    U["URLs"] --> E
-    E -->|"supported"| N["Harness LLM normalizer"]
-    E -->|"unsupported"| F["LLM fallback"] --> N
-    N --> M["clawshelf/normalized/*.md"]
-    M --> K["Knowledge map + QMD retrieval"]
-    K --> A["Archive, map, and idea artifacts"]
+    S["Local files"] --> D["Discovery and SHA-256 fingerprinting"]
+    U["Explicit URLs"] --> D
+    W["Folder watcher"] -->|"new or changed file"| D
+
+    D --> E["Extractor registry"]
+    E -->|"Markdown and text"| X["Extracted source content"]
+    E -->|"PDF, XLSX, or URL"| X
+    E -->|"other readable source"| F["Harness file-reading fallback"]
+    F --> X
+
+    X --> N["Section-aware LLM normalization"]
+    N --> V["Schema and evidence validation"]
+    V --> R["Normalized Markdown records"]
+
+    R --> M["Metadata and source inventory"]
+    R --> Q["QMD retrieval index"]
+    M --> H["Harness-facing search and synthesis"]
+    Q --> H
+
+    H --> B["Cited answers and optional brief"]
+    R --> O["Optional interactive overview"]
+    R --> C["Cross-source connection evaluation"]
+    C --> EV["Watch events and optional notifications"]
 ```
 
-The input folder is read-only. ClawShelf writes only below `<input>/clawshelf/`:
+The normalizer is hosted by the active agent harness; the bundled Python code
+handles deterministic extraction, validation, storage, overview rendering, and
+watch lifecycle. QMD is a retrieval backend, not a user interface. If its index
+is unavailable, normalized records remain the durable evidence layer and the
+harness can read them directly.
+
+The watcher feeds stable new or changed files back through the same extraction
+and normalization path. Only after a valid record exists does ClawShelf compare
+it with the current shelf, update managed artifacts, and produce an archive or
+connection notification.
+
+The input folder is read-only. ClawShelf writes only below `<input>/clawshelf/`.
+The complete runtime layout is:
 
 ```text
 <input>/
 └── clawshelf/
-    ├── normalized/                # one source-traceable Markdown record/source
+    ├── normalized/                 # one source-traceable Markdown record/source
+    ├── events/                     # watcher intake and connection events
+    ├── notifications/              # deduplicated delivery records
+    ├── clawshelf-config.json       # Shelf Plan, behavior, and routing identifiers
     ├── clawshelf-metadata.md       # archive and source inventory
-    └── clawshelf-brief.md          # knowledge map, synthesis, idea cards
+    ├── clawshelf-brief.md          # optional synthesis and idea artifact
+    ├── clawshelf-overview.html     # optional self-contained interactive map
+    └── watch-state.json            # active watcher process state
 ```
+
+The brief and overview are created on demand. Event, notification, and watcher
+state files exist only when the watch workflow uses them. Configuration stores
+routing identifiers but never provider credentials or access tokens.
 
 ## Product functions
 
