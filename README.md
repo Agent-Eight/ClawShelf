@@ -213,6 +213,9 @@ For the planned idea-generation layer, see
 Copyright 2026 ClawShelf. Licensed under the Apache License, Version 2.0.
 See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
+See [CHANGELOG.md](CHANGELOG.md) for release history and
+[SECURITY.md](SECURITY.md) for responsible-disclosure guidance.
+
 ## Other harnesses
 
 Codex, Claude Code, OpenCode, and similar harnesses can use the same skill
