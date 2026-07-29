@@ -10,9 +10,9 @@ from unittest.mock import MagicMock, patch
 from urllib.error import URLError
 
 import pymupdf
+from openpyxl import Workbook
 
 ROOT = Path(__file__).resolve().parents[1]
-FIXTURES = ROOT / "examples" / "fixture-collection" / "sources"
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from clawshelf.extractors import ExtractorRegistry, UrlExtractor, XlsxExtractor
@@ -83,15 +83,34 @@ class ExtractorTests(unittest.TestCase):
             self.assertNotEqual(first, source_record(path).sha256)
 
     def _case_xlsx_preserves_values_and_formulas(self) -> None:
-        content = XlsxExtractor().extract(FIXTURES / "sample.xlsx").content
-        self.assertIn("## Sheet: Budget", content)
-        self.assertIn("| Cost | 4 |", content)
-        self.assertIn("=B2*2", content)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sample.xlsx"
+            workbook = Workbook()
+            sheet = workbook.active
+            sheet.title = "Budget"
+            sheet.append(["Cost", 4])
+            sheet.append(["Double", "=B2*2"])
+            workbook.save(path)
+
+            content = XlsxExtractor().extract(path).content
+
+            self.assertIn("## Sheet: Budget", content)
+            self.assertIn("| Cost | 4 |", content)
+            self.assertIn("=B2*2", content)
 
     def _case_pdf_extracts_fixture_text(self) -> None:
-        result = ExtractorRegistry().extract(FIXTURES / "sample.pdf")
-        self.assertIn("River restoration evidence", result.content)
-        self.assertEqual(result.extraction_method, "pymupdf4llm-markdown")
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "sample.pdf"
+            document = pymupdf.open()
+            page = document.new_page()
+            page.insert_text((72, 72), "River restoration evidence")
+            document.save(path)
+            document.close()
+
+            result = ExtractorRegistry().extract(path)
+
+            self.assertIn("River restoration evidence", result.content)
+            self.assertEqual(result.extraction_method, "pymupdf4llm-markdown")
 
     def _case_pdf_preserves_markdown_headings(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

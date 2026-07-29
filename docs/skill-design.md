@@ -170,5 +170,6 @@ The detailed method and implementation checklist live in
 ## Development
 
 Use `uv` for Python dependencies and `qmd` for the retrieval CLI. Run
-`./scripts/bootstrap.sh` for setup and `./scripts/run-fixtures.sh` for the
-deterministic test/smoke suite.
+`./scripts/bootstrap.sh` for setup and
+`uv run --locked python -m unittest discover -s tests` for the deterministic
+test suite.

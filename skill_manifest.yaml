@@ -61,7 +61,6 @@ runtime:
   dependencies:
     html2text: ">=2024.2.26"
     openpyxl: ">=3.1.5,<4"
-    pypdf: ">=6.0.0,<7"
     watchfiles: ">=1.1.0,<2"
   side_effects:
     local_writes:
@@ -103,7 +102,6 @@ limitations:
   - The interactive overview embeds a pinned copy of D3 (ISC license, sha256-checked on every render); each generated file is roughly 350 KB.
 validation:
   local_commands:
-    - "./scripts/run-fixtures.sh"
     - "uv run --locked python -m unittest discover -s tests"
     - "uv run --locked python scripts/openclaw-watch-adapter.py <quant-trading-test-folder> --once <p1-test-file>"
   expected_behavior:

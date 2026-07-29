@@ -4,6 +4,11 @@ All notable changes to ClawShelf are documented in this file.
 
 ## [Unreleased]
 
+### Removed
+
+- Bundled examples and fixture-only smoke tooling from the public release.
+- The fixture-only `pypdf` dependency and lockfile entry.
+
 ## [0.1.0] - 2026-07-28
 
 ### Added
@@ -14,8 +19,3 @@ All notable changes to ClawShelf are documented in this file.
 - Watcher-driven intake, local fixture tests, and a self-contained interactive
   shelf overview.
 - MIT licensing, release documentation, and vendored-library notices.
-
-### Fixed
-
-- Declared the `pypdf` dependency required by fixture generation and locked it
-  in the published environment.
