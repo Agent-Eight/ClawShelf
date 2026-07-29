@@ -1,103 +1,89 @@
 # ClawShelf
 
-[English](README.md) | [简体中文](README.zh-CN.md)
+[English](README.en.md) | 简体中文
 
-ClawShelf turns a folder of notes, PDFs, spreadsheets, and articles into a
-**proactive research companion**. Instead of waiting for you to search, it
-watches the folder, processes new material, connects it with what you already
-know, and brings useful, evidence-backed insights to you as the collection
-grows.
+ClawShelf 能把装有笔记、PDF、电子表格和文章的文件夹变成一个
+**主动式研究伙伴**。它不会等你发起搜索，而是持续监控文件夹、处理新材料、
+把新证据与你已有的知识连接起来，并随着资料积累主动带来有依据的洞察。
 
-You can also ask questions at any time. ClawShelf builds a source-traceable
-library, answers across your files, highlights contradictions and gaps, and
-suggests promising next directions.
+你也可以随时提问。ClawShelf 会建立一个可追溯来源的资料库，跨文件回答问题，
+指出矛盾与缺口，并建议值得继续探索的方向。
 
-Your original files stay untouched. ClawShelf keeps everything it creates in a
-separate `clawshelf/` folder beside your sources.
+你的原始文件始终保持不变。ClawShelf 生成的所有内容都会保存在源文件旁独立的
+`clawshelf/` 文件夹中。
 
 <p align="center">
-  <img src="docs/assets/clawshelf-proactive-hero.svg" alt="A changed research file is compared with existing shelf evidence and produces a source-linked P1 discovery in Lark" width="100%">
+  <img src="docs/assets/clawshelf-proactive-hero-zh-CN.svg" alt="一个发生变化的研究文件会与资料架中的既有证据比较，并在 Lark 中生成带来源链接的 P1 级发现" width="100%">
 </p>
 
-## Who ClawShelf is for
+## ClawShelf 适合谁
 
-ClawShelf is useful when you have more material than you can reliably keep in
-your head and want more than one-off summaries. For example:
+当资料已经多到难以全部记住，而你需要的不只是一次性摘要时，ClawShelf 会很有用。
+例如：
 
-- Researchers comparing papers, methods, evidence, and open questions.
-- Product and market teams organizing reports, interviews, and meeting notes.
-- Engineers tracking decisions, experiments, benchmarks, and technical risks.
-- Writers building source-backed arguments and finding missing citations.
-- Analysts watching a folder for new evidence, changed conclusions, or useful
-  cross-source connections.
+- 需要比较论文、方法、证据和开放问题的研究人员。
+- 需要整理报告、访谈和会议记录的产品与市场团队。
+- 需要跟踪决策、实验、基准测试和技术风险的工程师。
+- 需要建立有来源支撑的论点并补齐引用的写作者。
+- 需要持续观察文件夹中新证据、结论变化或跨来源联系的分析师。
 
-## What it does
+## 它能做什么
 
-- **Works proactively.** After you activate a shelf, ClawShelf watches for new
-  and changed sources, analyzes them in the background, and notifies you when
-  it finds a useful cross-source connection.
-- **Builds a durable source library.** Each inspected file becomes a searchable
-  Markdown record with a summary, evidence, limitations, source path, and
-  confidence.
-- **Answers questions across files.** Search the whole shelf in natural language
-  and receive concise answers grounded in the original material.
-- **Connects related evidence.** Ask ClawShelf to explain agreements,
-  contradictions, gaps, and relationships between sources.
-- **Suggests next directions.** Receive source-backed ideas for what to
-  investigate, test, read, or write next—not just when you remember to ask.
-- **Creates an interactive overview.** Generate a self-contained local HTML map
-  for exploring sources and their connections.
+- **主动工作。** 激活资料架后，ClawShelf 会监控新增和变更的来源，在后台分析，
+  并在发现有价值的跨来源联系时通知你。
+- **建立持久的来源资料库。** 每个处理过的文件都会变成可搜索的 Markdown 记录，
+  其中包含摘要、证据、局限、源路径和置信度。
+- **跨文件回答问题。** 用自然语言搜索整个资料架，获得以原始材料为依据的简洁回答。
+- **连接相关证据。** 让 ClawShelf 解释不同来源之间的一致、矛盾、缺口与关系。
+- **建议下一步方向。** 主动获得有来源支撑的研究、测试、阅读或写作建议，
+  而不必等到你想起来再问。
+- **创建交互式概览。** 生成一个独立的本地 HTML 地图，用于浏览来源及其联系。
 
-## The core feature: proactive research
+## 核心功能：主动研究
 
-Most research tools wait for a query. ClawShelf keeps working after setup.
-When a source is added or changed, it automatically:
+大多数研究工具都在等待查询。ClawShelf 在设置完成后仍会持续工作。
+当来源被新增或修改时，它会自动：
 
-1. Extracts and organizes the new material.
-2. Compares it with the evidence already on the shelf.
-3. Looks for meaningful relationships, contradictions, missing evidence, and
-   possible next steps.
-4. Sends an update through the OpenClaw conversation where the shelf was
-   activated.
+1. 提取并整理新材料。
+2. 将新材料与资料架中已有的证据比较。
+3. 寻找有意义的联系、矛盾、缺失证据和可能的下一步。
+4. 通过激活资料架时使用的 OpenClaw 对话发送更新。
 
-Routine intake confirmations keep you informed, while stronger notifications
-surface evidence-backed connections that may change a conclusion or open a new
-research direction. Every connection points back to its sources, so you can
-inspect the evidence instead of trusting an unexplained suggestion.
+常规入库确认让你了解处理进度；更重要的通知则会呈现可能改变结论或开启新研究方向的
+证据联系。每一条联系都会指回来源，让你能够检查证据，而不是相信无法解释的建议。
 
 <p align="center">
-  <img src="docs/assets/clawshelf-proactive-loop.svg" alt="ClawShelf continuously watches for changed files, normalizes them, compares them with the shelf, classifies P1 or P2 events, and delivers updates through Lark" width="100%">
+  <img src="docs/assets/clawshelf-proactive-loop-zh-CN.svg" alt="ClawShelf 持续监控文件变化、标准化内容、与资料架比较、判定 P1 或 P2 事件，并通过 Lark 发送更新" width="100%">
 </p>
 
-## Quick start
+## 快速开始
 
-### 1. Install the prerequisites
+### 1. 安装前置工具
 
-Install these tools before installing ClawShelf:
+安装 ClawShelf 前，请先安装：
 
-- OpenClaw with permission to read your source folder and run local commands.
-- Python 3.11 or later and [`uv`](https://docs.astral.sh/uv/).
-- Node.js 22 or later.
-- **QMD**, the search backend ClawShelf uses to index and retrieve your
-  material.
-- On macOS, Homebrew SQLite, which QMD requires.
+- 有权限读取源文件夹并运行本地命令的 OpenClaw。
+- Python 3.11 或更高版本，以及 [`uv`](https://docs.astral.sh/uv/)。
+- Node.js 22 或更高版本。
+- **QMD**，ClawShelf 用于索引和检索材料的搜索后端。
+- macOS 上还需要 QMD 依赖的 Homebrew SQLite。
 
-On macOS, install the required system tools and QMD with:
+在 macOS 上，使用以下命令安装所需系统工具和 QMD：
 
 ```bash
 brew install uv sqlite
 npm install -g @tobilu/qmd@2.5.3
 ```
 
-On other platforms, install `uv` using its
-[official instructions](https://docs.astral.sh/uv/getting-started/installation/),
-then install QMD after Node.js 22 or later is available:
+在其他平台上，请按照
+[`uv` 官方说明](https://docs.astral.sh/uv/getting-started/installation/)
+进行安装，并在 Node.js 22 或更高版本可用后安装 QMD：
 
 ```bash
 npm install -g @tobilu/qmd@2.5.3
 ```
 
-Confirm the prerequisites before continuing:
+继续之前，请确认前置工具可用：
 
 ```bash
 uv --version
@@ -106,34 +92,30 @@ qmd --version
 qmd status
 ```
 
-Do not continue until `qmd --version` succeeds. If your shell cannot find
-`qmd` after installation, add npm's global binary directory to your `PATH`,
-restart the shell, and run the checks again.
+只有在 `qmd --version` 成功后才能继续。如果安装后 shell 仍找不到 `qmd`，
+请将 npm 的全局二进制目录加入 `PATH`，重启 shell，然后重新运行检查。
 
-### 2. Install ClawShelf from GitHub
+### 2. 从 GitHub 安装 ClawShelf
 
 ```bash
 openclaw skills install git:https://github.com/Agent-Eight/ClawShelf.git --as clawshelf
 openclaw skills info clawshelf
 ```
 
-This installs ClawShelf for the current OpenClaw agent. Add `--global` to the
-install command if you want it available from the shared skills directory.
+这会为当前 OpenClaw agent 安装 ClawShelf。如果希望它在共享技能目录中可用，
+请在安装命令中添加 `--global`。
 
-Start a new OpenClaw session after installation so the skill and its commands
-are discovered.
+安装后请启动新的 OpenClaw 会话，以便发现该技能及其命令。
 
-If you already downloaded the repository, you can install that local folder
-instead:
+如果你已经下载了仓库，也可以直接安装本地文件夹：
 
 ```bash
 openclaw skills install /path/to/ClawShelf --as clawshelf
 ```
 
-### 3. Choose a folder of source material
+### 3. 选择源材料文件夹
 
-Create or select a local folder containing the material you want ClawShelf to
-work with:
+创建或选择一个包含 ClawShelf 所需材料的本地文件夹：
 
 ```text
 project-research/
@@ -142,108 +124,100 @@ project-research/
 └── budget.xlsx
 ```
 
-Use the source folder itself, not a `clawshelf/` subfolder.
+请选择源文件夹本身，而不是其中的 `clawshelf/` 子文件夹。
 
-### 4. Activate the shelf
+### 4. 激活资料架
 
-In OpenClaw, run:
+在 OpenClaw 中运行：
 
 ```text
 /clawshelf use /absolute/path/to/project-research
 ```
 
-ClawShelf will:
+ClawShelf 会：
 
-1. Set this as the shelf for the current session.
-2. Create the shelf workspace if it does not exist.
-3. Infer a starting research plan from the folder and your request.
-4. Report files waiting to be processed.
-5. Start proactive monitoring for new and changed files.
+1. 将该文件夹设为当前会话的资料架。
+2. 在不存在时创建资料架工作区。
+3. 根据文件夹和你的请求推断初始研究计划。
+4. 报告等待处理的文件。
+5. 开始主动监控新增和变更的文件。
 
-Initial processing continues in the background. ClawShelf will show a compact
-status update and may ask you to confirm or adjust the inferred research plan.
-You can then leave the shelf running: as its contents change, ClawShelf will
-process the changes and bring relevant discoveries back to this conversation.
+初始处理会在后台继续进行。ClawShelf 会显示简洁的状态更新，并可能请你确认或调整
+推断出的研究计划。之后可以让资料架持续运行：内容变化时，ClawShelf 会处理变化，
+并把相关发现带回当前对话。
 
-### 5. Ask your first question
+### 5. 提出第一个问题
 
-Use a slash command:
-
-```text
-/clawshelf search "What evidence supports the main recommendation?"
-```
-
-Or ask naturally:
+使用斜杠命令：
 
 ```text
-Compare the reports in this shelf. Summarize where they agree, where they
-conflict, and what evidence is still missing.
+/clawshelf search "哪些证据支持主要建议？"
 ```
 
-## Everyday use
+也可以直接用自然语言提问：
 
-| What you want to do | Example |
+```text
+比较这个资料架中的报告。总结它们的一致之处、冲突之处，以及仍然缺失的证据。
+```
+
+## 日常使用
+
+| 你想做什么 | 示例 |
 | --- | --- |
-| Search across sources | `/clawshelf search "evidence about liquidity risk"` |
-| Explain a topic or claim | `/clawshelf explain "crowded trades"` |
-| Create a synthesis brief | `/clawshelf brief "What should I investigate next?"` |
-| Generate source-backed ideas | `/clawshelf ideas` |
-| Refresh after changing files | `/clawshelf refresh` |
-| Create the interactive map | `/clawshelf overview` |
-| List indexed sources | `/clawshelf sources` |
-| Check shelf health | `/clawshelf status` |
-| Show the active folder | `/clawshelf pwd` |
-| List known shelves | `/clawshelf folders` |
+| 跨来源搜索 | `/clawshelf search "关于流动性风险的证据"` |
+| 解释主题或主张 | `/clawshelf explain "拥挤交易"` |
+| 创建综合简报 | `/clawshelf brief "下一步应该调查什么？"` |
+| 生成有来源支撑的想法 | `/clawshelf ideas` |
+| 文件变更后刷新 | `/clawshelf refresh` |
+| 创建交互式地图 | `/clawshelf overview` |
+| 列出已索引来源 | `/clawshelf sources` |
+| 检查资料架健康状态 | `/clawshelf status` |
+| 显示当前文件夹 | `/clawshelf pwd` |
+| 列出已知资料架 | `/clawshelf folders` |
 
-You can also describe the outcome you want in ordinary language. For example:
+你也可以直接描述想要的结果。例如：
 
-- “Find contradictions about customer retention.”
-- “What changed after I added the latest report?”
-- “Which claims have the strongest evidence?”
-- “Turn these papers into a literature-review brief.”
-- “Suggest the most promising next research direction.”
+- “查找关于客户留存的矛盾。”
+- “添加最新报告后发生了什么变化？”
+- “哪些主张拥有最强的证据？”
+- “把这些论文整理成文献综述简报。”
+- “建议最有前景的下一步研究方向。”
 
-Most commands accept an optional folder. After `/clawshelf use`, you can
-normally omit it for the rest of that session.
+大多数命令都接受可选的文件夹参数。运行 `/clawshelf use` 后，
+在该会话剩余时间里通常可以省略文件夹。
 
-## When the folder changes
+## 文件夹发生变化时
 
-This is where ClawShelf's proactive behavior comes to life. Activating a shelf
-starts its background watcher. When you add or change a supported source,
-ClawShelf automatically processes it, compares it with the existing shelf, and
-can send:
+这正是 ClawShelf 主动能力发挥作用的地方。激活资料架会启动后台监控器。
+当你新增或修改受支持的来源时，ClawShelf 会自动处理它，与已有资料架比较，并可发送：
 
-- A short confirmation that the source was archived.
-- A richer update when the new material creates a useful, evidence-backed
-  connection, tension, or research direction.
+- 一条简短确认，说明来源已完成入库。
+- 当新材料形成有价值且有证据支撑的联系、张力或研究方向时，发送更丰富的更新。
 
-Both types of updates are enabled by default. Advanced users can keep routine
-archive updates in the shelf without receiving them as notifications; see the
-[command reference](references/commands.md) for the notification setting.
+两类更新默认都已启用。高级用户可以把常规入库更新保留在资料架中而不接收通知；
+通知设置见[完整命令参考](references/commands.md)。
 
-Run `/clawshelf refresh` whenever you want to check for changes immediately.
-Use `/clawshelf repair` if ClawShelf reports that a shelf is incomplete or
-damaged.
+需要立即检查变化时，运行 `/clawshelf refresh`。如果 ClawShelf 报告资料架不完整或
+已损坏，请运行 `/clawshelf repair`。
 
-## Supported sources
+## 支持的来源
 
-ClawShelf has built-in extraction for:
+ClawShelf 内置支持提取：
 
-| Source | Notes |
+| 来源 | 说明 |
 | --- | --- |
-| Markdown | `.md` files |
-| Plain text | `.txt` files |
-| PDF | Text is converted into section-aware Markdown |
-| Excel workbooks | `.xlsx` files, including individual sheets |
-| Web pages | Only URLs you explicitly provide |
+| Markdown | `.md` 文件 |
+| 纯文本 | `.txt` 文件 |
+| PDF | 文本会被转换为按章节组织的 Markdown |
+| Excel 工作簿 | `.xlsx` 文件，包括单独的工作表 |
+| 网页 | 仅处理你明确提供的 URL |
 
-Other readable local files may work through the active agent's file-reading
-tools. ClawShelf skips files it cannot read instead of guessing from their
-names.
+其他可读取的本地文件也可能通过当前 agent 的文件读取工具工作。
+ClawShelf 会跳过无法读取的文件，而不会根据文件名猜测其内容。
 
-## What ClawShelf creates
+## ClawShelf 会创建什么
 
-All generated content stays under `<your-folder>/clawshelf/`:
+所有生成内容都保存在 `<your-folder>/clawshelf/` 下：
 
 ```text
 project-research/
@@ -257,21 +231,19 @@ project-research/
     └── clawshelf-overview.html
 ```
 
-| Output | Purpose |
+| 输出 | 用途 |
 | --- | --- |
-| `normalized/` | One source-traceable Markdown record for each processed source |
-| `clawshelf-metadata.md` | Source inventory, topics, coverage, claims, and confidence |
-| `clawshelf-brief.md` | Optional synthesis, contradictions, gaps, ideas, and next directions |
-| `clawshelf-overview.html` | Optional interactive map generated by `/clawshelf overview` |
+| `normalized/` | 每个已处理来源对应一份可追溯来源的 Markdown 记录 |
+| `clawshelf-metadata.md` | 来源清单、主题、覆盖范围、主张和置信度 |
+| `clawshelf-brief.md` | 可选的综合、矛盾、缺口、想法和下一步方向 |
+| `clawshelf-overview.html` | 由 `/clawshelf overview` 生成的可选交互式地图 |
 
-The brief is created only when synthesis is useful or requested. The overview
-is generated only when you ask for it, opens locally, and does not need a web
-server or an internet connection.
+只有在综合有价值或被明确请求时才会创建简报。概览也只会在你请求时生成，
+它在本地打开，不需要 Web 服务器或互联网连接。
 
-## Language and notifications
+## 语言与通知
 
-ClawShelf supports English and Chinese. Its default `auto` mode follows the
-language of your latest message.
+ClawShelf 支持英文和中文。默认的 `auto` 模式会跟随你最新一条消息的语言。
 
 ```text
 /clawshelf language en
@@ -279,61 +251,51 @@ language of your latest message.
 /clawshelf language auto
 ```
 
-You can also add `--lang en`, `--lang zh`, or `--lang auto` to override a
-single command.
+也可以添加 `--lang en`、`--lang zh` 或 `--lang auto`，覆盖单次命令的语言。
 
-Background updates are delivered through the OpenClaw agent and conversation
-where you activated the shelf. ClawShelf stores routing information, but never
-provider passwords, API keys, or access tokens, in the shelf.
+后台更新会通过你激活资料架时所在的 OpenClaw agent 和对话发送。
+ClawShelf 会保存路由信息，但绝不会在资料架中保存服务商密码、API 密钥或访问令牌。
 
-## Privacy and safety
+## 隐私与安全
 
 <p align="center">
-  <img src="docs/assets/clawshelf-traceable-local-first.svg" alt="Read-only original files become source-traceable records inside the separate clawshelf folder, with Lark notifications linked to named evidence" width="100%">
+  <img src="docs/assets/clawshelf-traceable-local-first-zh-CN.svg" alt="只读原始文件会在独立的 clawshelf 文件夹中形成可追溯来源的记录，Lark 通知会链接到具名证据" width="100%">
 </p>
 
-- Source files are read-only; ClawShelf does not edit, rename, move, or delete
-  them.
-- Generated files are written only inside the source folder's `clawshelf/`
-  directory.
-- URL extraction fetches only the exact pages you provide and does not crawl
-  links.
-- Local-only collections can stay local. Network access is needed only for
-  user-provided URLs and any services used by the active agent.
-- Answers and suggestions identify their supporting sources and distinguish
-  evidence from speculation.
+- 源文件是只读的；ClawShelf 不会编辑、重命名、移动或删除它们。
+- 生成文件只会写入源文件夹中的 `clawshelf/` 目录。
+- URL 提取只获取你明确提供的页面，不会抓取其中的链接。
+- 仅含本地资料的集合可以始终留在本地。只有用户提供的 URL 和当前 agent 使用的服务
+  需要网络访问。
+- 回答和建议会标明支撑来源，并区分证据与推测。
 
-ClawShelf can support research and decision-making, but it is not a substitute
-for professional legal, medical, or financial advice and should not make
-autonomous high-stakes decisions.
+ClawShelf 可以辅助研究和决策，但不能替代专业的法律、医疗或财务建议，
+也不应自主做出高风险决策。
 
-## Known limitations
+## 已知限制
 
-- Image-only or heavily scanned PDFs may need external OCR, especially for
-  unsupported scripts or poor-quality scans.
-- Password-protected, corrupted, or unsupported files may be skipped.
-- Spreadsheet extraction reads workbook content but does not reproduce complex
-  interactive Excel behavior.
-- Web-page extraction does not sign in, bypass paywalls, or follow links.
-- Generated summaries and ideas should be checked against the cited sources
-  before important use.
-- Other agent harnesses may use ClawShelf, but installation, command discovery,
-  and local-file permissions vary by harness.
+- 纯图片或重度扫描的 PDF 可能需要外部 OCR，尤其是在脚本不受支持或扫描质量较差时。
+- 受密码保护、已损坏或格式不受支持的文件可能会被跳过。
+- 电子表格提取会读取工作簿内容，但不会复现复杂的 Excel 交互行为。
+- 网页提取不会登录、绕过付费墙或跟随链接。
+- 在重要场景中使用前，应根据引用来源核查生成的摘要和想法。
+- 其他 agent harness 也可能使用 ClawShelf，但安装、命令发现和本地文件权限会因
+  harness 而异。
 
-## Troubleshooting
+## 故障排除
 
-### ClawShelf is not available after installation
+### 安装后找不到 ClawShelf
 
-Start a new OpenClaw session, then verify the installation:
+启动新的 OpenClaw 会话，然后验证安装：
 
 ```bash
 openclaw skills info clawshelf
 openclaw skills check
 ```
 
-### A required tool is missing
+### 缺少必需工具
 
-Confirm that `uv`, Node.js 22 or later, and QMD are installed:
+确认已安装 `uv`、Node.js 22 或更高版本，以及 QMD：
 
 ```bash
 uv --version
@@ -342,54 +304,50 @@ qmd --version
 qmd status
 ```
 
-If QMD is missing, install the compatible version:
+如果缺少 QMD，请安装兼容版本：
 
 ```bash
-# macOS only: install QMD's SQLite dependency first
+# 仅 macOS：先安装 QMD 的 SQLite 依赖
 brew install sqlite
 
-# all platforms
+# 所有平台
 npm install -g @tobilu/qmd@2.5.3
 ```
 
-If `qmd` is still not found, add npm's global binary directory to your `PATH`
-and restart your shell.
+如果仍找不到 `qmd`，请将 npm 的全局二进制目录添加到 `PATH` 并重启 shell。
 
-### ClawShelf is using the wrong folder
+### ClawShelf 使用了错误的文件夹
 
-Select the exact source folder again:
+重新选择准确的源文件夹：
 
 ```text
 /clawshelf use /absolute/path/to/the/source-folder
 ```
 
-Use `/clawshelf pwd` to confirm the active shelf or `/clawshelf folders` to see
-known shelves.
+使用 `/clawshelf pwd` 确认当前资料架，或用 `/clawshelf folders` 查看已知资料架。
 
-### Files are missing from search
+### 搜索结果中缺少文件
 
-Run `/clawshelf status`, then `/clawshelf refresh`. Check that the files use a
-supported format and that OpenClaw has permission to read them. If the status
-reports a partial shelf, run `/clawshelf repair`.
+依次运行 `/clawshelf status` 和 `/clawshelf refresh`。检查文件格式是否受支持，
+以及 OpenClaw 是否有权限读取。如果状态报告资料架不完整，请运行
+`/clawshelf repair`。
 
-### The interactive overview does not open from chat
+### 无法从聊天中打开交互式概览
 
-Some chat channels block local `file://` links. Open the reported
-`clawshelf-overview.html` path directly on the computer that owns the shelf, or
-ask the agent to attach the HTML file.
+部分聊天渠道会阻止本地 `file://` 链接。请在拥有该资料架的计算机上直接打开报告的
+`clawshelf-overview.html` 路径，或让 agent 附加该 HTML 文件。
 
-## Documentation
+## 文档
 
-- [Full command reference](references/commands.md)
-- [Architecture and skill design](docs/skill-design.md)
-- [Compatibility with other agent harnesses](references/harness-compatibility.md)
-- [Idea-generation method](docs/idea-generation-method.md)
-- [Release history](CHANGELOG.md)
-- [Security and responsible disclosure](SECURITY.md)
+- [完整命令参考](references/commands.md)
+- [架构与技能设计](docs/skill-design.md)
+- [与其他 agent harness 的兼容性](references/harness-compatibility.md)
+- [想法生成方法](docs/idea-generation-method.md)
+- [发布历史](CHANGELOG.md)
+- [安全与负责任披露](SECURITY.md)
 
-## License
+## 许可证
 
-Copyright 2026 ClawShelf.
+Copyright 2026 ClawShelf。
 
-Licensed under the [MIT License](LICENSE). Third-party notices are listed in
-[NOTICE](NOTICE).
+本项目基于 [MIT License](LICENSE) 授权。第三方声明见 [NOTICE](NOTICE)。
