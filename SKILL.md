@@ -1,7 +1,7 @@
 ---
 name: clawshelf
 description: "Turn a local document shelf into a proactive research/file companion: source-traceable archive, knowledge map/search, and idea generation."
-license: Apache-2.0
+license: MIT
 metadata: { "author": "OpenClaw ClawShelf maintainers", "tags": ["research", "document-management", "retrieval", "knowledge-map", "idea-generation"], "permissions": ["file_read", "file_write", "shell_execute", "network"], "openclaw": { "emoji": "🐚", "requires": { "bins": ["uv"] }, "install": [{ "id": "brew-uv", "kind": "brew", "formula": "uv", "bins": ["uv"], "label": "Install uv (brew)" }, { "id": "node-qmd", "kind": "node", "package": "@tobilu/qmd", "bins": ["qmd"], "label": "Install QMD (npm)" }], "watch": { "autoEnableWhenInstalled": true, "useCommand": "scripts/openclaw-use.py", "command": "scripts/openclaw-watch-adapter.py", "eventSchema": "clawshelf.watch-event", "eventDir": "<folder>/clawshelf/events", "pushPolicy": { "P1": "notify", "P2": "notify" } } } }
 ---
 

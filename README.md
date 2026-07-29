@@ -210,7 +210,7 @@ For the planned idea-generation layer, see
 
 ## License
 
-Copyright 2026 ClawShelf. Licensed under the Apache License, Version 2.0.
+Copyright 2026 ClawShelf. Licensed under the MIT License.
 See [LICENSE](LICENSE) and [NOTICE](NOTICE).
 
 See [CHANGELOG.md](CHANGELOG.md) for release history and

@@ -13,10 +13,9 @@ All notable changes to ClawShelf are documented in this file.
   proactive idea-generation workflows.
 - Watcher-driven intake, local fixture tests, and a self-contained interactive
   shelf overview.
-- Apache-2.0 licensing, release documentation, and vendored-library notices.
+- MIT licensing, release documentation, and vendored-library notices.
 
 ### Fixed
 
 - Declared the `pypdf` dependency required by fixture generation and locked it
   in the published environment.
-

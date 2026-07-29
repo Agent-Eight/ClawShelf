@@ -1,6 +1,6 @@
 id: openclaw.clawshelf
 version: 0.1.0
-license: Apache-2.0
+license: MIT
 intended_use:
   summary: Local document-shelf normalization, source-traceable retrieval, knowledge mapping, and proactive idea generation.
   scope: internal development and evaluation
