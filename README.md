@@ -1,12 +1,21 @@
 # ClawShelf
 
-ClawShelf turns a folder of notes, PDFs, spreadsheets, and articles into an
-ongoing research companion. It builds a source-traceable library, answers
-questions across your files, highlights contradictions and gaps, and suggests
-useful connections as the collection grows.
+ClawShelf turns a folder of notes, PDFs, spreadsheets, and articles into a
+**proactive research companion**. Instead of waiting for you to search, it
+watches the folder, processes new material, connects it with what you already
+know, and brings useful, evidence-backed insights to you as the collection
+grows.
+
+You can also ask questions at any time. ClawShelf builds a source-traceable
+library, answers across your files, highlights contradictions and gaps, and
+suggests promising next directions.
 
 Your original files stay untouched. ClawShelf keeps everything it creates in a
 separate `clawshelf/` folder beside your sources.
+
+<p align="center">
+  <img src="docs/assets/clawshelf-proactive-hero.svg" alt="A changed research file is compared with existing shelf evidence and produces a source-linked P1 discovery in Lark" width="100%">
+</p>
 
 ## Who ClawShelf is for
 
@@ -22,6 +31,9 @@ your head and want more than one-off summaries. For example:
 
 ## What it does
 
+- **Works proactively.** After you activate a shelf, ClawShelf watches for new
+  and changed sources, analyzes them in the background, and notifies you when
+  it finds a useful cross-source connection.
 - **Builds a durable source library.** Each inspected file becomes a searchable
   Markdown record with a summary, evidence, limitations, source path, and
   confidence.
@@ -29,26 +41,72 @@ your head and want more than one-off summaries. For example:
   and receive concise answers grounded in the original material.
 - **Connects related evidence.** Ask ClawShelf to explain agreements,
   contradictions, gaps, and relationships between sources.
-- **Suggests next directions.** Generate briefs and source-backed ideas for what
-  to investigate, test, read, or write next.
-- **Keeps up with a growing folder.** New and changed files are processed in the
-  background after you activate a shelf.
+- **Suggests next directions.** Receive source-backed ideas for what to
+  investigate, test, read, or write next—not just when you remember to ask.
 - **Creates an interactive overview.** Generate a self-contained local HTML map
   for exploring sources and their connections.
 
+## The core feature: proactive research
+
+Most research tools wait for a query. ClawShelf keeps working after setup.
+When a source is added or changed, it automatically:
+
+1. Extracts and organizes the new material.
+2. Compares it with the evidence already on the shelf.
+3. Looks for meaningful relationships, contradictions, missing evidence, and
+   possible next steps.
+4. Sends an update through the OpenClaw conversation where the shelf was
+   activated.
+
+Routine intake confirmations keep you informed, while stronger notifications
+surface evidence-backed connections that may change a conclusion or open a new
+research direction. Every connection points back to its sources, so you can
+inspect the evidence instead of trusting an unexplained suggestion.
+
+<p align="center">
+  <img src="docs/assets/clawshelf-proactive-loop.svg" alt="ClawShelf continuously watches for changed files, normalizes them, compares them with the shelf, classifies P1 or P2 events, and delivers updates through Lark" width="100%">
+</p>
+
 ## Quick start
 
-### 1. Check the prerequisites
+### 1. Install the prerequisites
 
-You need:
+Install these tools before installing ClawShelf:
 
 - OpenClaw with permission to read your source folder and run local commands.
 - Python 3.11 or later and [`uv`](https://docs.astral.sh/uv/).
-- Node.js 22 or later for the search backend.
-- On macOS, Homebrew SQLite (`brew install sqlite`) if prompted.
+- Node.js 22 or later.
+- **QMD**, the search backend ClawShelf uses to index and retrieve your
+  material.
+- On macOS, Homebrew SQLite, which QMD requires.
 
-OpenClaw can offer to install `uv` and the search backend when the skill needs
-them.
+On macOS, install the required system tools and QMD with:
+
+```bash
+brew install uv sqlite
+npm install -g @tobilu/qmd@2.5.3
+```
+
+On other platforms, install `uv` using its
+[official instructions](https://docs.astral.sh/uv/getting-started/installation/),
+then install QMD after Node.js 22 or later is available:
+
+```bash
+npm install -g @tobilu/qmd@2.5.3
+```
+
+Confirm the prerequisites before continuing:
+
+```bash
+uv --version
+node --version
+qmd --version
+qmd status
+```
+
+Do not continue until `qmd --version` succeeds. If your shell cannot find
+`qmd` after installation, add npm's global binary directory to your `PATH`,
+restart the shell, and run the checks again.
 
 ### 2. Install ClawShelf from GitHub
 
@@ -98,10 +156,12 @@ ClawShelf will:
 2. Create the shelf workspace if it does not exist.
 3. Infer a starting research plan from the folder and your request.
 4. Report files waiting to be processed.
-5. Start watching the folder for new and changed files.
+5. Start proactive monitoring for new and changed files.
 
 Initial processing continues in the background. ClawShelf will show a compact
 status update and may ask you to confirm or adjust the inferred research plan.
+You can then leave the shelf running: as its contents change, ClawShelf will
+process the changes and bring relevant discoveries back to this conversation.
 
 ### 5. Ask your first question
 
@@ -146,12 +206,14 @@ normally omit it for the rest of that session.
 
 ## When the folder changes
 
-Activating a shelf starts its background watcher. When you add or change a
-supported source, ClawShelf can send:
+This is where ClawShelf's proactive behavior comes to life. Activating a shelf
+starts its background watcher. When you add or change a supported source,
+ClawShelf automatically processes it, compares it with the existing shelf, and
+can send:
 
 - A short confirmation that the source was archived.
 - A richer update when the new material creates a useful, evidence-backed
-  connection with the existing shelf.
+  connection, tension, or research direction.
 
 Both types of updates are enabled by default. Advanced users can keep routine
 archive updates in the shelf without receiving them as notifications; see the
@@ -224,6 +286,10 @@ provider passwords, API keys, or access tokens, in the shelf.
 
 ## Privacy and safety
 
+<p align="center">
+  <img src="docs/assets/clawshelf-traceable-local-first.svg" alt="Read-only original files become source-traceable records inside the separate clawshelf folder, with Lark notifications linked to named evidence" width="100%">
+</p>
+
 - Source files are read-only; ClawShelf does not edit, rename, move, or delete
   them.
 - Generated files are written only inside the source folder's `clawshelf/`
@@ -265,14 +331,27 @@ openclaw skills check
 
 ### A required tool is missing
 
-Confirm that `uv` and Node.js 22 or later are installed. On macOS, install
-Homebrew SQLite if requested:
+Confirm that `uv`, Node.js 22 or later, and QMD are installed:
 
 ```bash
-brew install uv sqlite
+uv --version
+node --version
+qmd --version
+qmd status
 ```
 
-ClawShelf's setup scripts install the compatible search backend when needed.
+If QMD is missing, install the compatible version:
+
+```bash
+# macOS only: install QMD's SQLite dependency first
+brew install sqlite
+
+# all platforms
+npm install -g @tobilu/qmd@2.5.3
+```
+
+If `qmd` is still not found, add npm's global binary directory to your `PATH`
+and restart your shell.
 
 ### ClawShelf is using the wrong folder
 
