@@ -175,6 +175,10 @@ search, graph, overview, explain, brief, or idea-generation work.
 
 - Generates `<folder>/clawshelf/clawshelf-overview.html` by running
   `scripts/render-overview.py` against a ready shelf.
+- `--lang` sets the interface language of the page (chrome, legend, inspector
+  labels); node labels stay the source documents' own titles. Pass the language
+  of the current conversation instead of `auto` — `auto` reads only the process
+  locale and falls back to `zh` when there is none.
 - Draws every valid normalized source as a **neuron**, with one dendrite
   branch per dendrite signal and one axon terminal per axon signal. Detail is
   adaptive: zoomed out shows soma and arbor silhouette only, zooming in or

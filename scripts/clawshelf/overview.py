@@ -149,8 +149,14 @@ def build_overview_data(
 
 
 def render_overview_html(payload: dict[str, Any]) -> str:
+    language = str(payload.get("language") or "en")
+    ui = payload.get("ui") or {}
     try:
-        return render_page(_safe_json(payload))
+        return render_page(
+            _safe_json(payload),
+            language=language,
+            page_title=str(ui.get("title") or "ClawShelf Neural Map"),
+        )
     except (OSError, ValueError) as exc:
         raise OverviewError(str(exc)) from exc
 
@@ -701,17 +707,29 @@ def _dedupe_dicts(items: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 
 def _resolve_language(language: str) -> str:
+    """Resolve ``auto`` against the process locale.
+
+    A Chinese locale gives ``zh`` and any other real locale gives ``en``. When
+    the environment carries no usable locale at all -- unset, or the ``C`` /
+    ``POSIX`` placeholders that a GUI-launched terminal commonly inherits --
+    the fallback is ``zh``, this skill's primary interface language. Callers
+    that know better should pass ``en``/``zh`` explicitly instead of ``auto``.
+    """
     if language in {"en", "zh"}:
         return language
-    locale_name = " ".join(
-        value
+    values = [
+        value.strip().lower()
         for value in (
             os.environ.get("LC_ALL", ""),
             os.environ.get("LC_MESSAGES", ""),
             os.environ.get("LANG", ""),
         )
-        if value
-    ).lower()
+        if value.strip()
+    ]
+    usable = [value for value in values if value not in {"c", "posix", "c.utf-8"}]
+    if not usable:
+        return "zh"
+    locale_name = " ".join(usable)
     return "zh" if locale_name.startswith("zh") or " zh" in locale_name else "en"
 
 

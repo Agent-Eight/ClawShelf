@@ -91,6 +91,11 @@ For `/clawshelf overview [folder]`, resolve a ready shelf and run:
 uv run --locked --project {baseDir} python {baseDir}/scripts/render-overview.py <folder> --lang <auto|en|zh>
 ```
 
+Set `--lang` from the language of the current conversation — `zh` when talking
+with the user in Chinese, `en` in English — rather than leaving it at `auto`.
+`auto` only sees the process locale, which is often absent or `C` in a
+GUI-launched terminal, and then falls back to `zh`.
+
 The command atomically writes
 `<folder>/clawshelf/clawshelf-overview.html` and returns its path, node count,
 filesystem URL (`file_url`), synapse count, validated P1 edge count, and any
