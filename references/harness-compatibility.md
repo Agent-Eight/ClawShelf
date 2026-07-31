@@ -12,8 +12,9 @@ A compatible harness must provide:
 - command execution for `uv` and `qmd`;
 - an LLM able to reason over extracted content;
 - a local-file reading path for the `llm_fallback` route;
-- outbound network access for the URL extractor (only needed when a source is
-  a URL; local-only collections work without it).
+- outbound network access for the URL extractor when a source is a URL, and to
+  jsDelivr when opening the optional interactive overview. Local-only
+  collections work without network access until that overview is opened.
 
 ## Portability boundaries
 

@@ -31,7 +31,7 @@ outputs:
     type: html_file
     path: "<input_root>/clawshelf/clawshelf-overview.html"
     optional: true
-    self_contained: true
+    self_contained: false
   - name: watch_event
     type: json_file
     path: "<input_root>/clawshelf/events/*.json"
@@ -70,36 +70,40 @@ runtime:
     home_writes: []
     network_endpoints:
       - "explicit user-provided URLs only"
+      - "cdn.jsdelivr.net (opening clawshelf-overview.html only; version-pinned + SRI)"
     requires_docker: false
     requires_gpu: none
     env_required: []
-  vendored:
-    - path: scripts/clawshelf/vendor/d3.min.js
+  cdn_subresources:
+    # Loaded by clawshelf-overview.html at open time. Every URL is version-pinned
+    # and carries a sha384 integrity attribute, so a substituted bundle is refused
+    # by the browser. The page needs network access when it is opened.
+    - url: https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js
       version: "7.9.0"
-      sha256: f2094bbf6141b359722c4fe454eb6c4b0f0e42cc10cc7af921fc158fceb86539
+      integrity: sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i
       license: ISC
-      purpose: inlined into clawshelf-overview.html so it renders with no network access
-    - path: scripts/clawshelf/vendor/d3-force-3d.min.js
-      version: "3.0.6"
-      sha256: 412b4aadc3218aa65de10b70ba3324dd365d4bf7a061299fa682f530e8506ee9
-      license: MIT
-      purpose: powers the optional 3D toggle in clawshelf-overview.html, off by default
-    - path: scripts/clawshelf/vendor/d3-octree.min.js
+      purpose: rendering library for the interactive neural map
+    - url: https://cdn.jsdelivr.net/npm/d3-octree@1.1.0/dist/d3-octree.min.js
       version: "1.1.0"
-      sha256: 62c23034a7a7e9c3d5cb3118e108ac82ceffed0351f2d7b6400ddc66cd2643a2
+      integrity: sha384-hUTIiRoVMThdazpg0sq2HBUqxGkxQUqTjwmWCLBcj0bN66J1dZn4LKfrgH5JFRIO
       license: MIT
-      purpose: d3-force-3d dependency, powers the optional 3D toggle
-    - path: scripts/clawshelf/vendor/d3-binarytree.min.js
+      purpose: d3-force-3d dependency
+    - url: https://cdn.jsdelivr.net/npm/d3-binarytree@1.0.2/dist/d3-binarytree.min.js
       version: "1.0.2"
-      sha256: 34ee89660516611365de94ab44ff8e06d968f6bfb7b3772667d12793a4bc5b57
+      integrity: sha384-F8zw7JKCwK5i0lckYtAlEACGf/JO5Lykne9c64a0A7slh6UvriVvwvZiF0wdf6Bc
       license: MIT
-      purpose: d3-force-3d dependency, powers the optional 3D toggle
+      purpose: d3-force-3d dependency
+    - url: https://cdn.jsdelivr.net/npm/d3-force-3d@3.0.6/dist/d3-force-3d.min.js
+      version: "3.0.6"
+      integrity: sha384-dki4I11AcMLPaqZ+ynfRGxIxP8Hfmc0xxsWZrgiHUF1D7kTfbwm6yHoduDZPfyxq
+      license: MIT
+      purpose: 3D force layout behind the neural map
 limitations:
   - QMD is a backend retrieval dependency, not the user interface.
   - URL extraction fetches only explicitly provided URLs and does not crawl.
   - Scanned PDFs without selectable text may need OCR outside the built-in extraction pipeline.
   - Shelf configuration and inferred onboarding answers are persisted in `<input_root>/clawshelf/clawshelf-config.json`.
-  - The interactive overview embeds a pinned copy of D3 (ISC license, sha256-checked on every render); each generated file is roughly 350 KB.
+  - The interactive overview loads D3 and the d3-force-3d family from a version-pinned, SRI-guarded CDN, so opening it requires network access; offline it shows a notice instead of the map.
 validation:
   local_commands:
     - "uv run --locked python -m unittest discover -s tests"
@@ -115,4 +119,4 @@ validation:
     - P1 and P2 watch events produce enabled notification records by default; `p1_only` keeps P2 log-only.
     - Watch delivery does not store provider-specific channel targets in shelf data.
     - /clawshelf overview writes one HTML artifact on explicit invocation and never refreshes it from watch intake.
-    - The overview HTML loads no external subresources.
+    - The overview HTML loads only its four version-pinned, SRI-guarded CDN subresources.

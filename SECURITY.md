@@ -42,8 +42,9 @@ tests, and bundled example data in this repository.
 ## Security Invariants
 
 - Never modify source documents; write only below `<input_root>/clawshelf/`.
-- Fetch only URLs explicitly supplied by the user; do not crawl or discover
-  further network targets.
+- Fetch only URLs explicitly supplied by the user, plus the four
+  version-pinned, SRI-guarded jsDelivr bundles documented for the optional
+  overview; do not crawl or discover further network targets.
 - Keep credentials, tokens, private keys, and channel-specific secrets out of
   repository content, prompts, logs, configuration, and generated shelf data.
 - Preserve source traceability without exposing more source content than the
@@ -61,7 +62,8 @@ Please report issues that could plausibly cause:
   model output, or watcher events;
 - disclosure or persistence of credentials, private source content, or delivery
   identifiers beyond their documented scope;
-- network access to targets that were not explicitly supplied by the user;
+- network access to targets that were neither explicitly supplied by the user
+  nor one of the four documented, pinned overview CDN bundles;
 - script injection in generated overview HTML; or
 - unauthorized notification delivery, route rebinding, or cross-session data
   disclosure.

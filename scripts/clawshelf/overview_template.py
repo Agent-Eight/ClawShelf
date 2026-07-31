@@ -1,8 +1,10 @@
-"""The overview page: styles, renderer, and the vendored D3 bundle.
+"""The overview page: styles, renderer, and the CDN script tags.
 
-The generated artifact is a single self-contained file — the rendering library is
-inlined from ``vendor/d3.min.js`` and verified against a pinned hash on every
-render, so the page loads no external subresources and works with no network.
+The rendering libraries are loaded from jsDelivr at version-pinned URLs, each
+guarded by a Subresource Integrity hash so a tampered or substituted bundle is
+refused by the browser rather than executed. The page therefore needs a network
+connection the first time it is opened; ``_APP_SCRIPT`` detects a failed load and
+shows a localized notice instead of failing silently.
 
 Kept separate from :mod:`clawshelf.overview` for two reasons: the page source is
 large, and the "no ``.innerHTML``" invariant is asserted against
@@ -13,87 +15,55 @@ of ours.
 
 from __future__ import annotations
 
-from functools import lru_cache
-from pathlib import Path
-import hashlib
-import re
+from html import escape
 
 
 D3_VERSION = "7.9.0"
-D3_SHA256 = "f2094bbf6141b359722c4fe454eb6c4b0f0e42cc10cc7af921fc158fceb86539"
-D3_PATH = Path(__file__).resolve().parent / "vendor" / "d3.min.js"
-
-FORCE3D_VERSION = "3.0.6"
-FORCE3D_SHA256 = "412b4aadc3218aa65de10b70ba3324dd365d4bf7a061299fa682f530e8506ee9"
-FORCE3D_PATH = Path(__file__).resolve().parent / "vendor" / "d3-force-3d.min.js"
-
 OCTREE_VERSION = "1.1.0"
-OCTREE_SHA256 = "62c23034a7a7e9c3d5cb3118e108ac82ceffed0351f2d7b6400ddc66cd2643a2"
-OCTREE_PATH = Path(__file__).resolve().parent / "vendor" / "d3-octree.min.js"
-
 BINARYTREE_VERSION = "1.0.2"
-BINARYTREE_SHA256 = "34ee89660516611365de94ab44ff8e06d968f6bfb7b3772667d12793a4bc5b57"
-BINARYTREE_PATH = Path(__file__).resolve().parent / "vendor" / "d3-binarytree.min.js"
+FORCE3D_VERSION = "3.0.6"
 
-_SOURCE_MAP_RE = re.compile(r"(?m)^//# sourceMappingURL=.*$")
-_FORBIDDEN_TOKENS = ("</script", "__overview_data__", "__d3_source__", "__d3_force3d_source__")
-
-
-def _vendored_source(path: Path, expected_sha256: str, label: str) -> str:
-    """Read a vendored JS file, verified against its pinned hash.
-
-    Shared by every vendored bundle (D3 itself and the d3-force-3d family) so
-    each one gets the same hash check, sourcemap strip, and forbidden-token
-    scan as the original D3-only implementation.
-    """
-    try:
-        raw = path.read_bytes()
-    except OSError as exc:
-        raise OSError(
-            f"vendored {label} is missing or unreadable: {path} "
-            "(see scripts/clawshelf/vendor/README.md to refetch it)"
-        ) from exc
-    digest = hashlib.sha256(raw).hexdigest()
-    if digest != expected_sha256:
-        raise ValueError(
-            f"vendored {label} failed its pinned sha256 check: expected {expected_sha256}, got {digest}"
-        )
-    text = _SOURCE_MAP_RE.sub("", raw.decode("utf-8"))
-    lowered = text.lower()
-    if any(token in lowered for token in _FORBIDDEN_TOKENS):
-        raise ValueError(f"vendored {label} contains a script terminator or template token")
-    return text
+# (url, integrity). Order is dependency order and must be preserved: classic
+# script tags execute in document order, and d3-force-3d's browser build expects
+# d3.octree/d3.binaryTree to already exist on the shared `d3` global.
+#
+# The integrity values are sha384 digests of the exact published bundles. To
+# re-pin after a version bump, fetch each URL and run:
+#   openssl dgst -sha384 -binary <file> | openssl base64 -A
+CDN_SCRIPTS: tuple[tuple[str, str], ...] = (
+    (
+        f"https://cdn.jsdelivr.net/npm/d3@{D3_VERSION}/dist/d3.min.js",
+        "sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i",
+    ),
+    (
+        f"https://cdn.jsdelivr.net/npm/d3-octree@{OCTREE_VERSION}/dist/d3-octree.min.js",
+        "sha384-hUTIiRoVMThdazpg0sq2HBUqxGkxQUqTjwmWCLBcj0bN66J1dZn4LKfrgH5JFRIO",
+    ),
+    (
+        f"https://cdn.jsdelivr.net/npm/d3-binarytree@{BINARYTREE_VERSION}/dist/d3-binarytree.min.js",
+        "sha384-F8zw7JKCwK5i0lckYtAlEACGf/JO5Lykne9c64a0A7slh6UvriVvwvZiF0wdf6Bc",
+    ),
+    (
+        f"https://cdn.jsdelivr.net/npm/d3-force-3d@{FORCE3D_VERSION}/dist/d3-force-3d.min.js",
+        "sha384-dki4I11AcMLPaqZ+ynfRGxIxP8Hfmc0xxsWZrgiHUF1D7kTfbwm6yHoduDZPfyxq",
+    ),
+)
 
 
-@lru_cache(maxsize=1)
-def d3_source() -> str:
-    """Return the vendored D3 bundle, verified against its pinned hash."""
-    return _vendored_source(D3_PATH, D3_SHA256, "D3")
-
-
-@lru_cache(maxsize=1)
-def force3d_source() -> str:
-    """Return the vendored d3-octree + d3-binarytree + d3-force-3d bundle.
-
-    Concatenated in dependency order: d3-force-3d's browser build expects
-    ``d3.octree``/``d3.binaryTree`` to already exist on the shared ``d3``
-    global before it loads (see vendor/README.md).
-    """
-    return "\n".join(
-        (
-            _vendored_source(OCTREE_PATH, OCTREE_SHA256, "d3-octree"),
-            _vendored_source(BINARYTREE_PATH, BINARYTREE_SHA256, "d3-binarytree"),
-            _vendored_source(FORCE3D_PATH, FORCE3D_SHA256, "d3-force-3d"),
-        )
+def cdn_script_tags() -> str:
+    """Render the pinned CDN bundles as SRI-guarded script tags."""
+    return "\n  ".join(
+        f'<script src="{escape(url, quote=True)}" '
+        f'integrity="{escape(integrity, quote=True)}" '
+        'crossorigin="anonymous" referrerpolicy="no-referrer"></script>'
+        for url, integrity in CDN_SCRIPTS
     )
 
 
 def render_page(data_json: str) -> str:
-    """Compose the page. Data is substituted first so it can never inject D3."""
-    return (
-        _HTML_TEMPLATE.replace("__OVERVIEW_DATA__", data_json)
-        .replace("__D3_SOURCE__", d3_source())
-        .replace("__D3_FORCE3D_SOURCE__", force3d_source())
+    """Compose the page. Data is substituted first so it can never inject markup."""
+    return _HTML_TEMPLATE.replace("__OVERVIEW_DATA__", data_json).replace(
+        "__CDN_SCRIPTS__", cdn_script_tags()
     )
 
 
@@ -160,7 +130,7 @@ header p { margin: 0; color: var(--muted); max-width: 68ch; }
 
 .controls {
   display: grid;
-  grid-template-columns: minmax(190px, 1.8fr) repeat(5, minmax(118px, 1fr)) auto auto;
+  grid-template-columns: minmax(190px, 1.8fr) repeat(5, minmax(118px, 1fr)) auto;
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -193,11 +163,12 @@ button:hover { border-color: #cfccc4; }
   position: relative;
   border: 1px solid var(--line);
   border-radius: 16px;
-  background:
-    radial-gradient(1200px 700px at 50% 38%, #ffffff, #f4f2ee);
-  box-shadow: var(--shadow);
+  /* no fill and no drop shadow: the illustration sits directly on the page,
+     the way a plate sits on the paper around it. overflow:hidden still has to
+     stay, or orbiting flings neurons out over the rest of the layout. */
+  background: none;
   overflow: hidden;
-  min-height: 460px;
+  min-height: 520px;
 }
 #graph { display: block; width: 100%; height: 100%; cursor: grab; }
 #graph:active { cursor: grabbing; }
@@ -355,35 +326,39 @@ aside h3 {
 .sw i.line { width: 22px; height: 0; border-radius: 0; border-top: 2px solid currentColor; }
 .sw i.dash { width: 22px; height: 0; border-radius: 0; border-top: 2px dashed currentColor; }
 
-/* ---- graph ---- */
-.field-bg { fill: url(#dots); }
+/* ---- graph ----
+   Drawn like a plate from an anatomy text: ink contours, low-saturation
+   washes, volume from soft gradients rather than glow or specular highlights. */
 .neuron { cursor: pointer; }
 .soma {
-  stroke: #ffffff;
-  stroke-width: 2;
+  stroke: rgba(28, 34, 48, .55);
+  stroke-width: 1.4;
   transition: filter .15s;
 }
-.soma-ring { fill: none; stroke: rgba(15, 23, 42, .10); stroke-width: 1; }
-.isolate .soma-ring { stroke-dasharray: 3 3; stroke: rgba(15, 23, 42, .22); }
-.dendrite-branch { fill: none; stroke: #9aa3b2; stroke-width: 1.1; stroke-linecap: round; }
-.axon-trunk { fill: none; stroke: #5b6472; stroke-width: 1.5; stroke-linecap: round; }
-.branchlet { fill: none; stroke: #5b6472; stroke-width: 1.1; stroke-linecap: round; }
-.bouton { stroke: #ffffff; stroke-width: 1; }
+.soma-ring { fill: none; stroke: rgba(28, 34, 48, .20); stroke-width: 1; }
+.isolate .soma-ring { stroke-dasharray: 3 3; stroke: rgba(28, 34, 48, .32); }
+.dendrite-branch { fill: none; stroke: #7d8797; stroke-width: 1.1; stroke-linecap: round; }
+.axon-trunk { fill: none; stroke: #454e5e; stroke-width: 1.7; stroke-linecap: round; }
+.branchlet { fill: none; stroke: #454e5e; stroke-width: 1.15; stroke-linecap: round; }
+.bouton { stroke: rgba(28, 34, 48, .5); stroke-width: .9; }
 .dtip { fill: #ffffff; stroke-width: 1.3; }
-.silhouette { stroke: none; opacity: .09; }
+/* the arbor's convex hull, kept faint — a pencil underlay beneath the ink */
+.silhouette { stroke: none; opacity: .12; }
 .nlabel {
-  font-size: 11px;
-  fill: #414a5b;
+  font-family: var(--serif);
+  font-size: 11.5px;
+  letter-spacing: .01em;
+  fill: #2b3241;
   text-anchor: middle;
   paint-order: stroke;
-  stroke: rgba(255, 255, 255, .92);
-  stroke-width: 3.5;
+  stroke: rgba(251, 250, 247, .94);
+  stroke-width: 3;
   stroke-linejoin: round;
   pointer-events: none;
 }
 .synapse { fill: none; stroke-linecap: round; }
 .synapse.axo_dendritic { stroke: var(--axo-dendritic); }
-.synapse.axo_axonic { stroke: var(--axo-axonic); stroke-dasharray: 4 3; }
+.synapse.axo_axonic { stroke: var(--axo-axonic); stroke-dasharray: 5 3.5; }
 .synapse.faint { stroke-width: .8 !important; stroke-opacity: .18 !important; }
 .cleft { stroke: #ffffff; stroke-width: 1; }
 .pulse { fill: none; stroke-linecap: round; stroke-width: 3; opacity: 0; pointer-events: none; }
@@ -398,12 +373,13 @@ aside h3 {
   0%, 100% { filter: none; }
   35% { filter: brightness(1.32) saturate(1.35) drop-shadow(0 0 9px rgba(28, 34, 48, .3)); }
 }
-.selected .soma { filter: drop-shadow(0 0 7px rgba(53, 99, 214, .45)); }
+/* selection reads as a heavier contour, not a glow */
+.selected .soma { stroke: var(--accent); stroke-width: 2.6; }
 .synapse.selected { stroke-opacity: 1 !important; stroke-width: 3.4 !important; }
 .synapse.hover { stroke-opacity: 1 !important; }
 .hit { fill: none; stroke: transparent; stroke-width: 14; pointer-events: stroke; cursor: pointer; }
 .hit.dim { pointer-events: none; }
-.dim { opacity: .08; }
+.dim { opacity: .10; }
 .branch-focus { stroke-width: 2.6 !important; }
 
 /* level of detail — a terminal that carries a synapse (.live) always stays
@@ -455,6 +431,16 @@ _APP_SCRIPT = r"""
   }
   var ui = data.ui || {};
 
+  // The drawing libraries come from a pinned CDN, so a first open with no
+  // network (or an SRI mismatch) leaves `d3` undefined. Say so plainly instead
+  // of throwing an opaque ReferenceError into an otherwise blank canvas.
+  if (typeof d3 === "undefined" || !d3.forceSimulation) {
+    overlay.textContent = ui.offline_notice ||
+      "This map loads its drawing library from the network. Reconnect and reopen the file.";
+    overlay.classList.add("error");
+    return;
+  }
+
   try {
     boot();
   } catch (err) {
@@ -473,28 +459,19 @@ _APP_SCRIPT = r"""
       "benchmark": "#0a8ba3",
       "unknown": "#a8adb7"
     };
-    var IDEA_COLORS = {
-      "innovation": "#c026d3",
-      "consolidation": "#0284c7",
-      "relation_candidate": "#d97706",
-      "connection_candidate": "#64748b"
-    };
     var TAU = Math.PI * 2;
     var DEG = 180 / Math.PI;
 
-    // billboarded-3D state (see docs/overview-3d-feasibility.md): arbors stay the
-    // exact flat 2D shapes buildAnatomy already draws, only the soma position and
-    // camera become 3D. Off by default -- an explicit, reversible toggle.
-    var mode3d = false;
+    // Billboarded 3D is the only mode (see docs/overview-3d-feasibility.md):
+    // arbors stay the exact flat shapes buildAnatomy draws, and only the soma
+    // position and the camera are three-dimensional.
     var cam = { rx: -0.35, ry: 0.6, dist: 900 };
-    // the point the camera orbits around and looks at. Recomputed every 3D
-    // tick as the live centroid of the node cluster (see tick3d) rather than
-    // assumed to be the world origin -- the 2D-seeded x/y positions start out
-    // centered on the SVG viewport (roughly width/2,height/2), and the weak
-    // recentering force in ensureSimulation3d takes many ticks to pull them
-    // toward 0,0, if it ever fully does. Orbiting around a fixed origin while
-    // the visible cluster sits somewhere else is what made rotation look like
-    // a wide, off-axis swing instead of a turn-in-place.
+    // the point the camera orbits around and looks at. Recomputed every frame
+    // as the live centroid of the node cluster (see updateCamTarget) rather
+    // than assumed to be the world origin -- the recentering force is weak by
+    // design, so the cluster can settle well away from 0,0. Orbiting around a
+    // fixed origin while the visible cluster sits somewhere else is what made
+    // rotation look like a wide, off-axis swing instead of a turn-in-place.
     var camTarget = { x: 0, y: 0, z: 0 };
 
     // ---------- text ----------
@@ -506,7 +483,6 @@ _APP_SCRIPT = r"""
     search.setAttribute("aria-label", ui.search || "");
     setText("fit", ui.fit);
     setText("reset", ui.reset);
-    setText("mode-3d", ui.mode_2d);
     setText("inspector-title", ui.inspector);
     setText("legend-title", ui.anatomy);
 
@@ -648,34 +624,29 @@ _APP_SCRIPT = r"""
     svg.attr("viewBox", "0 0 " + width + " " + height);
 
     var defs = svg.append("defs");
-    var pattern = defs.append("pattern")
-      .attr("id", "dots").attr("width", 26).attr("height", 26)
-      .attr("patternUnits", "userSpaceOnUse");
-    pattern.append("circle").attr("cx", 1).attr("cy", 1).attr("r", 1)
-      .attr("fill", "#1c2230").attr("opacity", 0.05);
-    svg.append("rect").attr("class", "field-bg").attr("width", "100%").attr("height", "100%");
+
+    // Somata and boutons are shaded like a textbook illustration: one soft
+    // radial gradient per role color, lit from the upper left. This is paint,
+    // not a specular highlight -- no glow, no filters.
+    var somaFills = {};
+    Object.keys(ROLE_COLORS).forEach(function (role, i) {
+      var base = ROLE_COLORS[role];
+      var id = "soma-" + i;
+      var grad = defs.append("radialGradient")
+        .attr("id", id).attr("cx", "50%").attr("cy", "50%").attr("r", "62%")
+        .attr("fx", "34%").attr("fy", "28%");
+      grad.append("stop").attr("offset", "0%").attr("stop-color", mixColor(base, "#ffffff", 0.30));
+      grad.append("stop").attr("offset", "55%").attr("stop-color", base);
+      grad.append("stop").attr("offset", "100%").attr("stop-color", mixColor(base, "#1c2230", 0.26));
+      somaFills[base] = "url(#" + id + ")";
+    });
+    function somaFill(color) { return somaFills[color] || color; }
 
     var viewport = svg.append("g").attr("class", "viewport lod-mid");
     var synapseLayer = viewport.append("g");
     var pulseLayer = viewport.append("g");
     var hitLayer = viewport.append("g");
     var neuronLayer = viewport.append("g");
-
-    var zoom = d3.zoom().scaleExtent([0.15, 6])
-      .filter(function (event) {
-        // Plain wheel zooms when the page itself has nothing to scroll (the
-        // normal desktop layout). Once the page overflows — narrow windows,
-        // where the inspector stacks below — the wheel scrolls the page and
-        // zooming needs a modifier, so the graph never traps the scroll.
-        if (event.type !== "wheel") { return !event.button; }
-        if (document.documentElement.scrollHeight <= window.innerHeight + 2) { return true; }
-        return event.ctrlKey || event.metaKey;
-      })
-      .on("zoom", function (event) {
-        viewport.attr("transform", event.transform);
-        applyTier(event.transform.k);
-      });
-    svg.call(zoom);
 
     // ---------- synapses ----------
     // Visual layers are purely decorative — their strokes are too thin to
@@ -769,7 +740,7 @@ _APP_SCRIPT = r"""
           var live = b.signal.synapse_count > 0 ? " live" : "";
           arbor.append("path").attr("class", "branchlet" + live).attr("d", b.stem);
           arbor.append("circle").attr("class", "bouton" + live)
-            .attr("cx", b.x).attr("cy", b.y).attr("r", 3.4).attr("fill", color)
+            .attr("cx", b.x).attr("cy", b.y).attr("r", 3.4).attr("fill", somaFill(color))
             .attr("data-signal", b.id)
             .on("mouseenter", function (event) { showTip(event, b.signal); })
             .on("mouseleave", hideTip)
@@ -786,7 +757,7 @@ _APP_SCRIPT = r"""
         });
       }
       g.append("circle").attr("class", "soma-ring").attr("r", n.r + 2.5);
-      g.append("circle").attr("class", "soma").attr("r", n.r).attr("fill", color);
+      g.append("circle").attr("class", "soma").attr("r", n.r).attr("fill", somaFill(color));
       g.append("text").attr("class", "nlabel").attr("y", n.r + 14).text(truncate(n.title, 42));
     });
 
@@ -810,7 +781,7 @@ _APP_SCRIPT = r"""
         return { source: l.source, target: l.target, similarity: true, weight: l.weight };
       }));
 
-    var simulation = d3.forceSimulation(nodes)
+    var simulation = d3.forceSimulation(nodes, 3)
       .force("link", d3.forceLink(forceLinks).id(function (n) { return n.id; })
         .distance(function (l) {
           if (l.similarity) { return 80 + (1 - l.weight) * 120; }
@@ -824,144 +795,88 @@ _APP_SCRIPT = r"""
         }))
       .force("charge", d3.forceManyBody().strength(function (n) { return -180 - 6 * (n.signal_count || 0); }))
       .force("collide", d3.forceCollide().radius(function (n) { return n.extent; }).iterations(2))
-      .force("x", d3.forceX(width / 2).strength(0.02))
-      .force("y", d3.forceY(height / 2).strength(0.02))
+      // a weak pull toward the origin, purely so the cluster doesn't drift
+      // unboundedly far from it over many ticks -- the camera itself orbits
+      // around the live centroid (camTarget, see updateCamTarget), not this
+      // coordinate, so this is a numerical-stability anchor only
+      .force("x", d3.forceX(0).strength(0.02))
+      .force("y", d3.forceY(0).strength(0.02))
+      .force("z", d3.forceZ(0).strength(0.02))
       .alphaDecay(0.028)
-      .on("tick", tick)
-      .on("end", function () { orientArbors(); fitGraph(); });
+      .on("tick", requestRender)
+      .on("end", function () { fitGraph(); });
 
-    function tick() {
-      neuronSel.attr("transform", function (n) { return "translate(" + fmt(n.x) + "," + fmt(n.y) + ")"; });
-      redrawSynapses();
+    // ---------- camera ----------
+    // Arbors stay exactly the flat 2D shapes buildAnatomy drew: each neuron is
+    // a billboard whose soma position is 3D and whose decal is projected flat
+    // and re-aimed at its strongest partner in screen space (see orientArbors).
+    var motionQuery = window.matchMedia ? window.matchMedia("(prefers-reduced-motion: reduce)") : null;
+    function calmMotion() { return !!(motionQuery && motionQuery.matches); }
+
+    // Focal length of the pinhole, in the same units as cam.dist. Screen scale
+    // is FOCAL / (dist + z): dollying in genuinely magnifies, and at the default
+    // dist a neuron at the pivot depth draws at exactly its authored size.
+    var FOCAL = 900;
+    var fitDist = cam.dist;              // distance the last fit chose; the LOD reference
+    var targetDist = cam.dist;
+    var spinRy = 0, spinRx = 0;          // orbit velocity, decays after release
+    var tween = null;                    // eased fit/center push, or null
+    var arborDrift = 0;                  // how far the arbors still have to turn
+    var needsRender = true;
+    var rafId = null;
+
+    function clamp(v, lo, hi) { return v < lo ? lo : (v > hi ? hi : v); }
+
+    function shortArc(a) {
+      // wrap an angular delta into [-PI, PI] so a turn never takes the long way
+      while (a > Math.PI) { a -= TAU; }
+      while (a < -Math.PI) { a += TAU; }
+      return a;
     }
 
-    function redrawSynapses() {
-      synapseSel.attr("d", synapsePath);
-      hitSel.attr("d", synapsePath);
-    }
-
-    function anchor(node, signalId) {
-      if (!signalId || !node.anchors[signalId]) {
-        return { x: node.x + node.r * Math.cos(node.theta), y: node.y + node.r * Math.sin(node.theta), a: node.theta };
-      }
-      var local = node.anchors[signalId];
-      var c = Math.cos(node.theta);
-      var s = Math.sin(node.theta);
-      return {
-        x: node.x + local.dx * c - local.dy * s,
-        y: node.y + local.dx * s + local.dy * c,
-        a: local.angle + node.theta
-      };
-    }
-
-    function synapsePath(s) {
-      // preNode/postNode (not source/target, which are just a canonical id
-      // ordering) so the drawn curve -- and the traveling-pulse animation
-      // along it -- always runs from the firing side to the receiving side.
-      var a = anchor(byId[s.preNode], s.preSignal);
-      var b = anchor(byId[s.postNode], s.postSignal);
-      // pull back along the tangents so a visible synaptic cleft remains
-      var p1x = a.x + 3 * Math.cos(a.a);
-      var p1y = a.y + 3 * Math.sin(a.a);
-      var p2x = b.x + 3 * Math.cos(b.a);
-      var p2y = b.y + 3 * Math.sin(b.a);
-      var dist = Math.hypot(p2x - p1x, p2y - p1y);
-      // clamped so a long synapse approaches head-on instead of looping wide
-      var k = Math.min((s.kind === "axo_axonic" ? 0.22 : 0.35) * dist, 55);
-      return "M" + fmt(p1x) + "," + fmt(p1y) +
-        "C" + fmt(p1x + k * Math.cos(a.a)) + "," + fmt(p1y + k * Math.sin(a.a)) +
-        " " + fmt(p2x + k * Math.cos(b.a)) + "," + fmt(p2y + k * Math.sin(b.a)) +
-        " " + fmt(p2x) + "," + fmt(p2y);
-    }
-
-    function orientArbors() {
-      // Point the axon at the strongest neuron this one drives, and the
-      // dendritic field at the strongest neuron driving it. When both exist the
-      // arbor takes the bisector, which is what stops synapses from having to
-      // loop around a soma to reach a dendrite on its far side.
-      nodes.forEach(function (n) {
-        var out = strongest(n, true);
-        var into = strongest(n, false);
-        var vx = 0;
-        var vy = 0;
-        if (out) { vx += Math.cos(out); vy += Math.sin(out); }
-        // dendrites face the driver, so the axon points away from it — but only
-        // as a tiebreaker, or reciprocal pairs cancel each other out
-        if (into) { vx -= 0.4 * Math.cos(into); vy -= 0.4 * Math.sin(into); }
-        if (vx === 0 && vy === 0) { return; }
-        n.theta = Math.atan2(vy, vx);
-      });
-
-      function strongest(n, outgoing) {
-        var best = null;
-        (n.synapseList || []).forEach(function (s) {
-          var isPre = s.preNode === n.id;
-          if (isPre !== outgoing) { return; }
-          if (!best || s.strength > best.strength) { best = s; }
-        });
-        if (!best) { return null; }
-        var other = byId[best.preNode === n.id ? best.postNode : best.preNode];
-        if (!other || other === n) { return null; }
-        return Math.atan2(other.y - n.y, other.x - n.x);
-      }
-
-      arborSel.attr("transform", function (n) { return "rotate(" + fmt(n.theta * DEG) + ")"; });
-      redrawSynapses();
-    }
-
-    // ---------- 3D mode (billboarded arbors) ----------
-    // Arbors stay exactly the flat 2D shapes drawn above -- only the soma's
-    // position becomes 3D and is projected through a hand-rolled camera each
-    // frame. orientArbors() is 2D-only and intentionally not re-run here;
-    // node.theta stays frozen at whatever it settled to before the switch.
-    var simulation3d = null;
-    var mode3dBtn = document.getElementById("mode-3d");
-    var initialDist = cam.dist;
-    var orbitDragging = false, orbitLastX = 0, orbitLastY = 0, orbitMoved = false;
-
-    function ensureSimulation3d() {
-      if (simulation3d) { return simulation3d; }
-      nodes.forEach(function (n) {
-        if (n.z === undefined) { n.z = (Math.random() - 0.5) * 40; }
-      });
-      simulation3d = d3.forceSimulation(nodes, 3)
-        .force("link", d3.forceLink(forceLinks).id(function (n) { return n.id; })
-          .distance(function (l) {
-            if (l.similarity) { return 80 + (1 - l.weight) * 120; }
-            var pad = l.confirmed ? 40 : 76;
-            return l.source.extent + l.target.extent + pad;
-          })
-          .strength(function (l) { return l.similarity ? 0.10 : Math.min(0.5, l.strength); }))
-        .force("charge", d3.forceManyBody().strength(function (n) { return -180 - 6 * (n.signal_count || 0); }))
-        .force("collide", d3.forceCollide().radius(function (n) { return n.extent; }).iterations(2))
-        // a weak pull toward the origin, purely so the cluster doesn't drift
-        // unboundedly far from it over many ticks -- the camera itself
-        // orbits around the live centroid (camTarget, see updateCamTarget),
-        // not this coordinate, so this is a numerical-stability anchor only
-        .force("x", d3.forceX(0).strength(0.02))
-        .force("y", d3.forceY(0).strength(0.02))
-        .force("z", d3.forceZ(0).strength(0.02))
-        .alphaDecay(0.028)
-        .on("tick", tick3d)
-        .on("end", fitGraph3d)
-        .stop();
-      return simulation3d;
-    }
-
-    function project3d(n) {
+    // World position relative to the pivot, rotated into the camera's frame:
+    // yaw first, then pitch. Split out from project3d because fitGraph has to
+    // evaluate it at the angles it is *about* to move to, not the current ones.
+    function cameraSpace(n, rx, ry) {
       var nx = n.x - camTarget.x;
       var ny = n.y - camTarget.y;
       var nz = (n.z || 0) - camTarget.z;
-      var cy = Math.cos(cam.ry), sy = Math.sin(cam.ry);
+      var cy = Math.cos(ry), sy = Math.sin(ry);
       var x = nx * cy + nz * sy;
       var z = -nx * sy + nz * cy;
-      var cx = Math.cos(cam.rx), sx = Math.sin(cam.rx);
-      var y = ny * cx - z * sx;
-      z = ny * sx + z * cx;
-      var f = cam.dist / (cam.dist + z);
+      var cx = Math.cos(rx), sx = Math.sin(rx);
+      return { x: x, y: ny * cx - z * sx, z: ny * sx + z * cx };
+    }
+
+    function project3d(n) {
+      var p = cameraSpace(n, cam.rx, cam.ry);
+      var x = p.x, y = p.y, z = p.z;
+      var f = FOCAL / depthDenom(z);
       // rotation happens around camTarget, but the SVG viewBox origin is
       // top-left, not centered -- shift the projected point to the canvas center
       return { sx: width / 2 + x * f, sy: height / 2 + y * f, f: f, z: z };
+    }
+
+    // Never let a neuron that has drifted behind the camera divide by ~zero (or
+    // flip sign and project as a mirrored ghost) -- floor the denominator.
+    function depthDenom(z) { return Math.max(cam.dist + z, cam.dist * 0.2); }
+
+    // Inverse of project3d at a *fixed* camera-space depth: the world point that
+    // a screen position maps to on the plane through `camZ` facing the camera.
+    // Both rotations are orthonormal, so undoing them is just the transpose.
+    function unproject3d(px, py, camZ) {
+      var f = FOCAL / depthDenom(camZ);
+      var x = (px - width / 2) / f;
+      var y = (py - height / 2) / f;
+      var cx = Math.cos(cam.rx), sx = Math.sin(cam.rx);
+      var ny = y * cx + camZ * sx;
+      var z1 = -y * sx + camZ * cx;
+      var cy = Math.cos(cam.ry), sy = Math.sin(cam.ry);
+      return {
+        x: camTarget.x + x * cy - z1 * sy,
+        y: camTarget.y + ny,
+        z: camTarget.z + x * sy + z1 * cy
+      };
     }
 
     function updateCamTarget() {
@@ -973,7 +888,52 @@ _APP_SCRIPT = r"""
       camTarget.z = cz / count;
     }
 
-    function anchor3d(node, signalId) {
+    // ---------- arbor orientation ----------
+    function strongestDir(n, outgoing) {
+      var best = null;
+      (n.synapseList || []).forEach(function (s) {
+        var isPre = s.preNode === n.id;
+        if (isPre !== outgoing) { return; }
+        if (!best || s.strength > best.strength) { best = s; }
+      });
+      if (!best) { return null; }
+      var other = byId[best.preNode === n.id ? best.postNode : best.preNode];
+      if (!other || other === n || !other.__proj || !n.__proj) { return null; }
+      // screen-space, not world-space: the arbor is a flat decal on a billboard,
+      // so what it has to line up with is where the partner *appears*, which
+      // changes as the camera orbits
+      return Math.atan2(other.__proj.sy - n.__proj.sy, other.__proj.sx - n.__proj.sx);
+    }
+
+    function orientArbors(instant) {
+      // Point the axon at the strongest neuron this one drives, and the
+      // dendritic field at the strongest neuron driving it. When both exist the
+      // arbor takes the bisector, which is what stops synapses from having to
+      // loop around a soma to reach a dendrite on its far side.
+      //
+      // Eased rather than snapped: the target angle moves continuously while the
+      // camera orbits, and snapping to it would make every arbor twitch.
+      var damp = (instant || calmMotion()) ? 1 : 0.12;
+      var drift = 0;
+      nodes.forEach(function (n) {
+        var out = strongestDir(n, true);
+        var into = strongestDir(n, false);
+        var vx = 0;
+        var vy = 0;
+        if (out !== null) { vx += Math.cos(out); vy += Math.sin(out); }
+        // dendrites face the driver, so the axon points away from it — but only
+        // as a tiebreaker, or reciprocal pairs cancel each other out
+        if (into !== null) { vx -= 0.4 * Math.cos(into); vy -= 0.4 * Math.sin(into); }
+        if (vx === 0 && vy === 0) { return; }
+        var delta = shortArc(Math.atan2(vy, vx) - n.theta);
+        n.theta += delta * damp;
+        drift = Math.max(drift, Math.abs(delta));
+      });
+      arborDrift = damp >= 1 ? 0 : drift;
+    }
+
+    // ---------- geometry of a drawn synapse ----------
+    function anchor(node, signalId) {
       var p = node.__proj || project3d(node);
       var local = signalId && node.anchors[signalId];
       var dx = local ? local.dx : node.r;
@@ -988,160 +948,339 @@ _APP_SCRIPT = r"""
       };
     }
 
-    // Same cubic-bezier "synaptic cleft" shape as the 2D synapsePath() --
-    // pull back along each anchor's tangent so the curve leaves the billboard
-    // at a natural angle instead of aiming straight at the other endpoint.
-    function synapsePath3d(s) {
-      // see synapsePath()'s comment -- preNode/postNode, not source/target
-      var a = anchor3d(byId[s.preNode], s.preSignal);
-      var b = anchor3d(byId[s.postNode], s.postSignal);
+    function synapsePath(s) {
+      // preNode/postNode (not source/target, which are just a canonical id
+      // ordering) so the drawn curve -- and the traveling-pulse animation
+      // along it -- always runs from the firing side to the receiving side.
+      var a = anchor(byId[s.preNode], s.preSignal);
+      var b = anchor(byId[s.postNode], s.postSignal);
+      // pull back along the tangents so a visible synaptic cleft remains
       var p1x = a.x + 3 * Math.cos(a.a);
       var p1y = a.y + 3 * Math.sin(a.a);
       var p2x = b.x + 3 * Math.cos(b.a);
       var p2y = b.y + 3 * Math.sin(b.a);
-      var dist = Math.hypot(p2x - p1x, p2y - p1y);
-      var k = Math.min((s.kind === "axo_axonic" ? 0.22 : 0.35) * dist, 55);
+      var dist = Math.hypot(p2x - p1x, p2y - p1y) || 1;
+      // clamped so a long synapse approaches head-on instead of looping wide
+      var k = Math.min((s.kind === "axo_axonic" ? 0.22 : 0.35) * dist, 40);
+      // ...but a long chord whose tangents both point along it degenerates into
+      // a straight ruled line across the plate. Bow the control points sideways,
+      // always the same way round, so long tracts read as drawn arcs.
+      var bow = Math.min(dist * 0.13, 70);
+      var ox = -(p2y - p1y) / dist * bow;
+      var oy = (p2x - p1x) / dist * bow;
       return "M" + fmt(p1x) + "," + fmt(p1y) +
-        "C" + fmt(p1x + k * Math.cos(a.a)) + "," + fmt(p1y + k * Math.sin(a.a)) +
-        " " + fmt(p2x + k * Math.cos(b.a)) + "," + fmt(p2y + k * Math.sin(b.a)) +
+        "C" + fmt(p1x + k * Math.cos(a.a) + ox) + "," + fmt(p1y + k * Math.sin(a.a) + oy) +
+        " " + fmt(p2x + k * Math.cos(b.a) + ox) + "," + fmt(p2y + k * Math.sin(b.a) + oy) +
         " " + fmt(p2x) + "," + fmt(p2y);
     }
 
-    function redrawSynapses3d() {
-      synapseSel.attr("d", synapsePath3d);
-      hitSel.attr("d", synapsePath3d);
+    function synapseDepth(s) {
+      var a = byId[s.preNode], b = byId[s.postNode];
+      var da = a && a.__depth !== undefined ? a.__depth : 0.5;
+      var db = b && b.__depth !== undefined ? b.__depth : 0.5;
+      return (da + db) / 2;
     }
 
-    function tick3d() {
+    function synapseZ(s) {
+      var a = byId[s.preNode], b = byId[s.postNode];
+      return ((a && a.__proj ? a.__proj.z : 0) + (b && b.__proj ? b.__proj.z : 0)) / 2;
+    }
+
+    function redrawSynapses() {
+      synapseSel.attr("d", synapsePath);
+      hitSel.attr("d", synapsePath);
+    }
+
+    // ---------- render ----------
+    // One frame: project, depth-sort, shade by depth, redraw. Everything that
+    // moves the picture (simulation ticks, orbit, dolly, tweens, drags) just
+    // marks the frame dirty and lets the rAF loop below coalesce the work.
+    var labelBuckets = {};
+    var labelOrder = nodes.slice();
+    var firstRender = true;
+    neuronSel.each(function (n) {
+      n.__el = this;
+      n.__label = this.querySelector("text.nlabel");
+    });
+
+    function render() {
       updateCamTarget();
-      nodes.forEach(function (n) { n.__proj = project3d(n); });
+      var zMin = Infinity, zMax = -Infinity;
+      nodes.forEach(function (n) {
+        var p = project3d(n);
+        n.__proj = p;
+        if (p.z < zMin) { zMin = p.z; }
+        if (p.z > zMax) { zMax = p.z; }
+      });
+      var span = Math.max(1, zMax - zMin);
+      nodes.forEach(function (n) { n.__depth = (n.__proj.z - zMin) / span; });
+
+      // the very first frame has no previous angles to ease from, so snap
+      orientArbors(firstRender);
+      firstRender = false;
+
+      // painter's algorithm: farthest first, so near neurons cover far ones
       neuronSel.sort(function (a, b) { return b.__proj.z - a.__proj.z; });
       neuronSel.attr("transform", function (n) {
         var p = n.__proj;
-        return "translate(" + fmt(p.sx) + "," + fmt(p.sy) + ") scale(" + fmt(Math.max(0.05, p.f)) + ")";
+        // pow() compresses the perspective range: far neurons stay legible and
+        // near ones don't swallow the canvas, while the ordering still reads
+        var k = clamp(Math.pow(Math.max(p.f, 0.02), 0.65), 0.45, 1.35);
+        return "translate(" + fmt(p.sx) + "," + fmt(p.sy) + ") scale(" + fmt(k) + ")";
       });
-      neuronSel.select("text.nlabel").style("display", function (n) {
-        return n.__proj.f > 0.75 ? null : "none";
-      });
-      redrawSynapses3d();
-      applyTier(initialDist / cam.dist);
+      arborSel.attr("transform", function (n) { return "rotate(" + fmt(n.theta * DEG) + ")"; });
+
+      // Aerial perspective: distance fades toward the page, which on a light
+      // ground is just opacity -- no filter, no second color. Kept even on a
+      // big shelf; it is one attribute write per node, and depth separation is
+      // what makes a crowded plate readable at all.
+      neuronSel.attr("opacity", function (n) { return fmt(1 - 0.55 * n.__depth); });
+
+      redrawSynapses();
+      if (!LIGHT) {
+        // Synapses depth-sort too, or a link behind the cluster paints over the
+        // somata in front of it. This one *is* skipped on a big shelf: unlike
+        // the attribute writes, sorting physically reorders the DOM every frame.
+        synapseSel.sort(function (a, b) { return synapseZ(b) - synapseZ(a); });
+        hitSel.sort(function (a, b) { return synapseZ(b) - synapseZ(a); });
+      }
+      synapseSel
+        .attr("stroke-opacity", function (s) {
+          return fmt((0.28 + scoreStrength(s.score) * 0.57) * (1 - 0.6 * synapseDepth(s)));
+        })
+        .attr("stroke-width", function (s) {
+          return fmt((1.2 + scoreStrength(s.score) * 2.4) * (1 - 0.35 * synapseDepth(s)));
+        });
+
+      updateLabels();
+      // "1" means framed as the last fit left it; >1 is dollied in past that
+      applyTier(fitDist / cam.dist);
     }
 
-    function fitGraph3d() {
-      cam.rx = -0.35;
-      cam.ry = 0.6;
+    function updateLabels() {
+      // Screen-space decluttering: walk near to far and let the first label to
+      // claim a cell keep it. Selection/hover/drag always win a label, so the
+      // thing the reader is pointing at is never the one that got culled.
+      for (var bk in labelBuckets) { delete labelBuckets[bk]; }
+      labelOrder.sort(function (a, b) { return b.__proj.f - a.__proj.f; });
+      labelOrder.forEach(function (n) {
+        if (!n.__label) { return; }
+        var p = n.__proj;
+        var cls = n.__el.classList;
+        var show = !!n.__drag || cls.contains("selected") || cls.contains("focused");
+        var cx = Math.round(p.sx / LABEL_W);
+        var cy = Math.round((p.sy + 14) / LABEL_H);
+        if (!show && p.f > 0.3 && !occupied(cx, cy)) { show = true; }
+        if (show) {
+          // claim the cell either way, so a forced label still pushes its
+          // neighbours out rather than being overdrawn by them
+          labelBuckets[cx + ":" + cy] = 1;
+          n.__label.setAttribute("fill-opacity", fmt(1 - 0.5 * n.__depth));
+        }
+        n.__label.style.display = show ? "" : "none";
+      });
+    }
+
+    // A label is a wide, short box, so bucket collisions alone leave pairs that
+    // straddle a cell boundary overlapping. Check the 3x3 neighbourhood.
+    var LABEL_W = 96, LABEL_H = 24;
+    function occupied(cx, cy) {
+      for (var dx = -1; dx <= 1; dx += 1) {
+        for (var dy = -1; dy <= 1; dy += 1) {
+          if (labelBuckets[(cx + dx) + ":" + (cy + dy)]) { return true; }
+        }
+      }
+      return false;
+    }
+
+    // ---------- frame loop ----------
+    function requestRender() {
+      needsRender = true;
+      if (rafId === null) { rafId = requestAnimationFrame(frame); }
+    }
+
+    function frame(now) {
+      rafId = null;
+      var busy = false;
+
+      if (tween) {
+        var k = tween.dur <= 0 ? 1 : clamp((now - tween.t0) / tween.dur, 0, 1);
+        var e = 1 - Math.pow(1 - k, 3);
+        cam.rx = tween.rx0 + tween.drx * e;
+        cam.ry = tween.ry0 + tween.dry * e;
+        cam.dist = tween.d0 + tween.dd * e;
+        targetDist = cam.dist;
+        needsRender = true;
+        if (k >= 1) { tween = null; } else { busy = true; }
+      } else if (!orbitDragging && (Math.abs(spinRy) > 1e-4 || Math.abs(spinRx) > 1e-4)) {
+        // released-orbit inertia, decaying geometrically to a stop
+        cam.ry += spinRy;
+        cam.rx = clamp(cam.rx + spinRx, -1.4, 1.4);
+        spinRy *= 0.9;
+        spinRx *= 0.9;
+        needsRender = true;
+        busy = true;
+      }
+
+      if (Math.abs(targetDist - cam.dist) > 0.4) {
+        cam.dist += (targetDist - cam.dist) * 0.18;
+        needsRender = true;
+        busy = true;
+      } else if (cam.dist !== targetDist) {
+        cam.dist = targetDist;
+        needsRender = true;
+      }
+
+      if (needsRender) {
+        needsRender = false;
+        render();
+      }
+      // the arbors ease toward their target angles, so keep drawing until they
+      // have effectively arrived
+      if (busy || arborDrift > 0.002) { rafId = requestAnimationFrame(frame); }
+    }
+
+    function startTween(rx, ry, dist) {
+      spinRy = 0;
+      spinRx = 0;
+      tween = {
+        t0: (window.performance || Date).now(),
+        dur: calmMotion() ? 0 : 620,
+        rx0: cam.rx, drx: shortArc(rx - cam.rx),
+        ry0: cam.ry, dry: shortArc(ry - cam.ry),
+        d0: cam.dist, dd: dist - cam.dist
+      };
+      requestRender();
+    }
+
+    var FIT_RX = -0.35, FIT_RY = 0.6;
+
+    function fitGraph(instant) {
       updateCamTarget();
-      var maxR = 1;
+      // Solve for the distance directly instead of framing the bounding sphere:
+      // a node lands at FOCAL*x/(dist+z), so the distance that just keeps it
+      // inside the frame is FOCAL*|x|/halfW - z. The largest such requirement
+      // over every node (both axes, arbor extent included) is the fit.
+      var halfW = width * 0.47;
+      var halfH = height * 0.46;
+      var dist = 150;
+      var nearest = 0;
       nodes.forEach(function (n) {
-        var dx = n.x - camTarget.x, dy = n.y - camTarget.y, dz = (n.z || 0) - camTarget.z;
-        maxR = Math.max(maxR, Math.hypot(dx, dy, dz) + n.extent);
+        var p = cameraSpace(n, FIT_RX, FIT_RY);
+        // n.extent is the arbor's *circumscribed* radius, but an arbor is a fan
+        // pointing one way, so reserving all of it on every side leaves the
+        // plate half empty. Reserve the soma plus part of the reach.
+        var pad = n.r + (n.extent - n.r) * 0.55;
+        var need = Math.max(
+          FOCAL * (Math.abs(p.x) + pad) / halfW,
+          FOCAL * (Math.abs(p.y) + pad) / halfH
+        );
+        dist = Math.max(dist, need - p.z);
+        nearest = Math.min(nearest, p.z);
       });
-      cam.dist = maxR * 1.6;
-      tick3d();
+      // and never let the near side of the cluster cross the camera plane
+      dist = clamp(Math.max(dist, -nearest + 80), 150, 12000);
+      fitDist = dist;
+      if (instant) {
+        tween = null;
+        cam.rx = FIT_RX;
+        cam.ry = FIT_RY;
+        cam.dist = dist;
+        targetDist = dist;
+        requestRender();
+        return;
+      }
+      startTween(FIT_RX, FIT_RY, dist);
     }
 
-    function centerNode3d(n) {
-      cam.ry = Math.atan2(n.x - camTarget.x, (n.z || 0) - camTarget.z || 0.0001);
-      tick3d();
+    function centerNode(n) {
+      updateCamTarget();
+      // swing the camera around until this neuron sits on the near side
+      startTween(cam.rx, Math.atan2(n.x - camTarget.x, (n.z || 0) - camTarget.z || 0.0001), cam.dist);
     }
 
-    function enterMode3d() {
-      mode3d = true;
-      simulation.stop();
-      svg.on(".zoom", null);
-      // the camera projector computes final screen pixels directly; any
-      // leftover 2D pan/zoom transform on the shared viewport group would
-      // otherwise double-apply on top of it
-      viewport.attr("transform", null);
-      // d3-force always reads/writes node.x/node.y directly (not configurable),
-      // so the 2D and 3D simulations share the same fields. Snapshot the
-      // settled 2D layout before the 3D sim (re-centered on the world origin)
-      // starts moving x/y, or it would be silently overwritten and unrecoverable
-      // on switching back.
-      nodes.forEach(function (n) { n.__x2d = n.x; n.__y2d = n.y; });
-      ensureSimulation3d().alpha(0.6).restart();
-      // fit immediately against the 2D-seeded positions so the very first
-      // frame is already centered on the cluster, instead of a stale/default
-      // camTarget until the simulation's first tick fires
-      fitGraph3d();
-      mode3dBtn.setAttribute("aria-pressed", "true");
-      setText("mode-3d", ui.mode_3d);
+    function resetLayout() {
+      nodes.forEach(function (n) { n.fx = null; n.fy = null; n.fz = null; });
+      simulation.alpha(0.9).restart();
+      fitGraph();
     }
 
-    function exitMode3d() {
-      mode3d = false;
-      if (simulation3d) { simulation3d.stop(); }
-      nodes.forEach(function (n) {
-        if (n.__x2d !== undefined) { n.x = n.__x2d; n.y = n.__y2d; }
-      });
-      svg.call(zoom);
-      // d3.zoom kept tracking its own transform internally the whole time
-      // (entering 3D only cleared the viewport's visual attribute); reapply it
-      // now so the 2D view resumes exactly where the user left it instead of
-      // flashing to identity until the next zoom interaction
-      svg.call(zoom.transform, d3.zoomTransform(svg.node()));
-      neuronSel.select("text.nlabel").style("display", null);
-      tick(); // redraw the just-restored 2D positions/paths that tick3d
-              // overwrote; the 2D layout itself never changed while in 3D
-              // mode, so this resumes the already-settled layout instead of
-              // re-simulating from scratch
-      mode3dBtn.setAttribute("aria-pressed", "false");
-      setText("mode-3d", ui.mode_2d);
-    }
+    // ---------- orbit + dolly ----------
+    var orbitDragging = false, orbitLastX = 0, orbitLastY = 0, orbitMoved = false;
 
-    mode3dBtn.addEventListener("click", function () {
-      if (mode3d) { exitMode3d(); } else { enterMode3d(); }
-    });
-
-    // orbit (drag) + dolly (wheel) -- gated on mode3d so 2D pan/zoom via
-    // d3.zoom is completely unaffected when 3D is off
     svg.node().addEventListener("pointerdown", function (event) {
-      if (!mode3d) { return; }
+      // a pointerdown that landed on a neuron belongs to the node drag below;
+      // orbiting at the same time would fight it. Checked on the target rather
+      // than relying on d3.drag's event ordering.
+      if (event.target.closest && event.target.closest(".neuron")) { return; }
       // otherwise the browser's native text/image drag-select gesture starts
       // at the same time, which visibly fights the orbit
       event.preventDefault();
       orbitDragging = true;
       orbitMoved = false;
+      spinRy = 0;
+      spinRx = 0;
       orbitLastX = event.clientX;
       orbitLastY = event.clientY;
+      tween = null;
     });
     window.addEventListener("pointermove", function (event) {
-      if (!mode3d || !orbitDragging) { return; }
+      if (!orbitDragging) { return; }
       event.preventDefault();
       var dx = event.clientX - orbitLastX;
       var dy = event.clientY - orbitLastY;
       if (Math.abs(dx) > 2 || Math.abs(dy) > 2) { orbitMoved = true; }
-      cam.ry += dx * 0.008;
-      cam.rx = Math.max(-1.4, Math.min(1.4, cam.rx + dy * 0.008));
+      spinRy = dx * 0.008;
+      spinRx = dy * 0.008;
+      cam.ry += spinRy;
+      cam.rx = clamp(cam.rx + spinRx, -1.4, 1.4);
       orbitLastX = event.clientX;
       orbitLastY = event.clientY;
-      tick3d();
+      requestRender();
     });
-    window.addEventListener("pointerup", function () { orbitDragging = false; });
+    window.addEventListener("pointerup", function () {
+      if (!orbitDragging) { return; }
+      orbitDragging = false;
+      if (calmMotion()) { spinRy = 0; spinRx = 0; }
+      requestRender();
+    });
     svg.node().addEventListener("wheel", function (event) {
-      if (!mode3d) { return; }
       event.preventDefault();
-      cam.dist = Math.max(150, Math.min(4000, cam.dist + event.deltaY));
-      tick3d();
+      // exponential, so one notch moves the same *proportion* of the distance
+      // whether you are far out or right up against the cluster
+      targetDist = clamp(targetDist * Math.exp(event.deltaY * 0.0012), 150, 12000);
+      if (calmMotion()) { cam.dist = targetDist; }
+      requestRender();
     }, { passive: false });
 
+    // ---------- node drag ----------
+    // Dragging moves the neuron in the plane that faces the camera and passes
+    // through the neuron itself -- unproject3d at its own depth -- so it tracks
+    // the cursor exactly, and all three axes get pinned (fz included) or the
+    // node would spring back along z the instant the simulation resumes.
     neuronSel.call(d3.drag()
       .on("start", function (event, n) {
-        // in 3D mode, dragging the background orbits the camera instead
-        // (see docs/overview-3d-feasibility.md) -- repositioning a node by hand
-        // is 2D-only, so this is a deliberate no-op rather than an omission.
-        if (mode3d) { return; }
         if (!event.active) { simulation.alphaTarget(0.2).restart(); }
-        n.fx = n.x; n.fy = n.y;
+        var p = d3.pointer(event.sourceEvent, svg.node());
+        n.__drag = true;
+        n.__dragZ = n.__proj ? n.__proj.z : 0;
+        var w = unproject3d(p[0], p[1], n.__dragZ);
+        n.__grab = { x: n.x - w.x, y: n.y - w.y, z: (n.z || 0) - w.z };
+        n.fx = n.x; n.fy = n.y; n.fz = n.z || 0;
       })
       .on("drag", function (event, n) {
-        if (mode3d) { return; }
-        n.fx = event.x; n.fy = event.y;
+        var p = d3.pointer(event.sourceEvent, svg.node());
+        var w = unproject3d(p[0], p[1], n.__dragZ);
+        n.fx = w.x + n.__grab.x;
+        n.fy = w.y + n.__grab.y;
+        n.fz = w.z + n.__grab.z;
+        requestRender();
       })
       .on("end", function (event, n) {
-        if (mode3d) { return; }
         if (!event.active) { simulation.alphaTarget(0); }
-        n.fx = null; n.fy = null;
+        n.__drag = false;
+        n.fx = null; n.fy = null; n.fz = null;
+        requestRender();
       }));
 
     // ---------- level of detail ----------
@@ -1254,9 +1393,9 @@ _APP_SCRIPT = r"""
       clearPulses();
       var outgoing = (n.outgoing || []).slice(0, 6);
       outgoing.forEach(function (s, i) {
-        // synapsePath3d() produces a real curved path in current screen
-        // space, so the same travel-along-the-path animation works in 3D too
-        var path = mode3d ? synapsePath3d(s) : synapsePath(s);
+        // synapsePath() produces a real curved path in current screen space, so
+        // the travel-along-the-path animation works straight off the projection
+        var path = synapsePath(s);
         var color = s.kind === "axo_axonic" ? "#0ea5a4" : "#7c5cff";
         var el = pulseLayer.append("path")
           .attr("class", "pulse")
@@ -1583,7 +1722,7 @@ _APP_SCRIPT = r"""
     svg.on("click", function () {
       // an orbit drag that ends over the background still dispatches a click;
       // don't let it also deselect whatever was picked before the drag
-      if (mode3d && orbitMoved) { orbitMoved = false; return; }
+      if (orbitMoved) { orbitMoved = false; return; }
       clearSelection(); selected = null; showPrompt();
     });
 
@@ -1643,54 +1782,14 @@ _APP_SCRIPT = r"""
     }
 
     // ---------- controls ----------
-    document.getElementById("fit").addEventListener("click", fitGraph);
-    document.getElementById("reset").addEventListener("click", function () {
-      if (mode3d) {
-        nodes.forEach(function (n) { n.fx = null; n.fy = null; n.fz = null; });
-        ensureSimulation3d().alpha(0.8).restart();
-        fitGraph3d(); // reset orbit angles and refit now; the "end" handler
-                      // refits again once the reheated sim resettles
-        return;
-      }
-      nodes.forEach(function (n) { n.fx = null; n.fy = null; });
-      svg.transition().duration(400).call(zoom.transform, d3.zoomIdentity);
-      simulation.alpha(0.8).restart();
-    });
-
-    // fitGraph/centerNode are called from both the controls above and the
-    // 2D force simulation's "end" handler / search-jump below; keep those call
-    // sites unchanged and dispatch on mode3d here instead.
-    function fitGraph() { if (mode3d) { fitGraph3d(); } else { fitGraph2d(); } }
-    function centerNode(n) { if (mode3d) { centerNode3d(n); } else { centerNode2d(n); } }
-
-    function fitGraph2d() {
-      if (!nodes.length) { return; }
-      var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-      nodes.forEach(function (n) {
-        minX = Math.min(minX, n.x - n.extent);
-        maxX = Math.max(maxX, n.x + n.extent);
-        minY = Math.min(minY, n.y - n.extent);
-        maxY = Math.max(maxY, n.y + n.extent);
-      });
-      var w = Math.max(1, maxX - minX);
-      var h = Math.max(1, maxY - minY);
-      var scale = Math.min(6, 0.92 / Math.max(w / width, h / height));
-      var tx = width / 2 - scale * (minX + w / 2);
-      var ty = height / 2 - scale * (minY + h / 2);
-      svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity.translate(tx, ty).scale(scale));
-    }
-
-    function centerNode2d(n) {
-      svg.transition().duration(450).call(
-        zoom.transform,
-        d3.zoomIdentity.translate(width / 2, height / 2).scale(1.7).translate(-n.x, -n.y)
-      );
-    }
+    document.getElementById("fit").addEventListener("click", function () { fitGraph(); });
+    document.getElementById("reset").addEventListener("click", resetLayout);
 
     window.addEventListener("resize", function () {
       width = canvas.clientWidth || width;
       height = canvas.clientHeight || height;
       svg.attr("viewBox", "0 0 " + width + " " + height);
+      requestRender();
     });
 
     // ---------- boot ----------
@@ -1699,9 +1798,26 @@ _APP_SCRIPT = r"""
       overlay.textContent = ui.no_synapses || "";
       window.setTimeout(function () { overlay.textContent = ""; }, 6000);
     }
-    window.setTimeout(fitGraph, 700);
+    // frame the cluster immediately so the first painted frame is already
+    // centered, then ease into a proper fit once the layout has spread out
+    fitGraph(true);
+    window.setTimeout(function () { fitGraph(); }, 700);
 
     // ---------- helpers ----------
+    // Blend two #rrggbb colors. Used only to derive the lit and shaded stops of
+    // each soma gradient from its role color, so no other format needs support.
+    function mixColor(a, b, t) {
+      var pa = parseInt(a.slice(1), 16);
+      var pb = parseInt(b.slice(1), 16);
+      var out = 0;
+      for (var shift = 16; shift >= 0; shift -= 8) {
+        var ca = (pa >> shift) & 255;
+        var cb = (pb >> shift) & 255;
+        out |= Math.round(ca + (cb - ca) * t) << shift;
+      }
+      return "#" + ("000000" + out.toString(16)).slice(-6);
+    }
+
     function roleColor(role) {
       var key = String(role || "unknown").toLowerCase();
       if (ROLE_COLORS[key]) { return ROLE_COLORS[key]; }
@@ -1863,7 +1979,6 @@ _SKELETON = r"""<!doctype html>
       <select id="filter-idea"></select>
       <button id="fit" type="button"></button>
       <button id="reset" type="button"></button>
-      <button id="mode-3d" type="button" aria-pressed="false"></button>
     </div>
     <div class="workspace">
       <div class="canvas">
@@ -1882,8 +1997,7 @@ _SKELETON = r"""<!doctype html>
     </section>
   </div>
   <script id="overview-data" type="application/json">__OVERVIEW_DATA__</script>
-  <script>__D3_SOURCE__</script>
-  <script>__D3_FORCE3D_SOURCE__</script>
+  __CDN_SCRIPTS__
   <script>__APP_SCRIPT__</script>
 </body>
 </html>

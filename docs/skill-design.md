@@ -58,13 +58,15 @@ The complete runtime layout is:
     ├── clawshelf-config.json       # Shelf Plan, behavior, and routing identifiers
     ├── clawshelf-metadata.md       # archive and source inventory
     ├── clawshelf-brief.md          # optional synthesis and idea artifact
-    ├── clawshelf-overview.html     # optional self-contained interactive map
+    ├── clawshelf-overview.html     # optional interactive 3D neuron map
     └── watch-state.json            # active watcher process state
 ```
 
 The brief and overview are created on demand. Event, notification, and watcher
 state files exist only when the watch workflow uses them. Configuration stores
 routing identifiers but never provider credentials or access tokens.
+The overview opens as a local file without a web server, but loads its
+version-pinned, SRI-guarded rendering libraries from jsDelivr.
 
 ## Product functions
 

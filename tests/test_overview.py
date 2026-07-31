@@ -28,17 +28,13 @@ from clawshelf.overview_synapses import (
     SYNAPSE_PER_SIGNAL,
 )
 from clawshelf.overview_template import (
-    BINARYTREE_PATH,
-    BINARYTREE_SHA256,
-    D3_PATH,
-    D3_SHA256,
-    FORCE3D_PATH,
-    FORCE3D_SHA256,
-    OCTREE_PATH,
-    OCTREE_SHA256,
+    BINARYTREE_VERSION,
+    CDN_SCRIPTS,
+    D3_VERSION,
+    FORCE3D_VERSION,
+    OCTREE_VERSION,
     _APP_SCRIPT,
-    d3_source,
-    force3d_source,
+    cdn_script_tags,
 )
 
 
@@ -242,32 +238,31 @@ class OverviewTests(unittest.TestCase):
                 result.markdown_link,
                 f"[打开概览]({result.file_url})",
             )
-            self.assertNotIn("cdn.jsdelivr.net", html)
-            self.assertNotIn("<script src=", html)
-            self.assertIn("d3.forceSimulation", html)
             self.assertIn('id="search"', html)
             self.assertIn('id="inspector"', html)
             self.assertIn('id="graph"', html)
             self.assertIn("clawshelf.overview-data/v2", html)
             self.assertIn("\\u003c/script\\u003e", html)
-            # the 3D toggle (billboarded backend, off by default -- see
-            # docs/overview-3d-feasibility.md) and its vendored dependencies
-            self.assertIn('id="mode-3d"', html)
-            self.assertIn("github.com/vasturiano/d3-octree", html)
-            self.assertIn("github.com/vasturiano/d3-force-3d", html)
+            # 3D is the only mode: no toggle, no 2D pan/zoom path, no residual
+            # branching on a mode flag (see docs/overview-3d-feasibility.md)
+            self.assertNotIn('id="mode-3d"', html)
+            self.assertNotIn("mode3d", _APP_SCRIPT)
+            self.assertNotIn("d3.zoom", _APP_SCRIPT)
             self.assertIn("forceSimulation(nodes, 3)", _APP_SCRIPT)
-            # synapsePath/synapsePath3d must draw (and pulse-animate) from the
-            # firing side to the receiving side -- preNode/postNode, which
-            # respect s.direction -- not source/target, which are just a
-            # canonical id ordering with no relation to firing direction.
+            # synapsePath must draw (and pulse-animate) from the firing side to
+            # the receiving side -- preNode/postNode, which respect s.direction
+            # -- not source/target, which are just a canonical id ordering with
+            # no relation to firing direction.
             self.assertIn("anchor(byId[s.preNode], s.preSignal)", _APP_SCRIPT)
             self.assertIn("anchor(byId[s.postNode], s.postSignal)", _APP_SCRIPT)
-            self.assertIn("anchor3d(byId[s.preNode], s.preSignal)", _APP_SCRIPT)
-            self.assertIn("anchor3d(byId[s.postNode], s.postSignal)", _APP_SCRIPT)
             self.assertNotIn("anchor(byId[s.source]", _APP_SCRIPT)
             self.assertNotIn("anchor(byId[s.target]", _APP_SCRIPT)
-            self.assertNotIn("anchor3d(byId[s.source]", _APP_SCRIPT)
-            self.assertNotIn("anchor3d(byId[s.target]", _APP_SCRIPT)
+            # billboards are aimed at where their partner *appears*, so the
+            # orientation must read projected coordinates, not world ones
+            self.assertIn("other.__proj.sy - n.__proj.sy", _APP_SCRIPT)
+            # a dragged neuron has to be pinned on all three axes or it springs
+            # back along z the moment the simulation resumes
+            self.assertIn("n.fz", _APP_SCRIPT)
             # per-node source/target connection filter in the inspector
             self.assertIn("n.incoming = n.incoming || []", _APP_SCRIPT)
             self.assertIn("connectionFilter", _APP_SCRIPT)
@@ -552,42 +547,31 @@ class OverviewTests(unittest.TestCase):
             self.assertEqual(payload["synapses"], [])
             self.assertEqual(payload["stats"]["isolates"], 1)
 
-    # ---- self-contained artifact ----
+    # ---- CDN subresources ----
 
-    def test_vendored_d3_matches_its_pinned_hash(self) -> None:
-        import hashlib
+    def test_cdn_scripts_are_version_pinned_and_sri_protected(self) -> None:
+        tags = cdn_script_tags()
 
-        source = d3_source()
-
-        self.assertTrue(source.strip())
-        self.assertEqual(
-            hashlib.sha256(D3_PATH.read_bytes()).hexdigest(),
-            D3_SHA256,
-        )
-        self.assertNotIn("</script", source.lower())
-        self.assertNotIn("sourceMappingURL", source)
-
-    def test_vendored_d3_force3d_family_matches_its_pinned_hashes(self) -> None:
-        import hashlib
-
-        source = force3d_source()
-
-        self.assertTrue(source.strip())
-        for path, expected in (
-            (OCTREE_PATH, OCTREE_SHA256),
-            (BINARYTREE_PATH, BINARYTREE_SHA256),
-            (FORCE3D_PATH, FORCE3D_SHA256),
-        ):
-            with self.subTest(path=path.name):
-                self.assertEqual(hashlib.sha256(path.read_bytes()).hexdigest(), expected)
-        self.assertNotIn("</script", source.lower())
-        self.assertNotIn("sourceMappingURL", source)
+        expected = [
+            f"https://cdn.jsdelivr.net/npm/d3@{D3_VERSION}/dist/d3.min.js",
+            f"https://cdn.jsdelivr.net/npm/d3-octree@{OCTREE_VERSION}/dist/d3-octree.min.js",
+            f"https://cdn.jsdelivr.net/npm/d3-binarytree@{BINARYTREE_VERSION}"
+            "/dist/d3-binarytree.min.js",
+            f"https://cdn.jsdelivr.net/npm/d3-force-3d@{FORCE3D_VERSION}/dist/d3-force-3d.min.js",
+        ]
+        self.assertEqual([url for url, _ in CDN_SCRIPTS], expected)
         # load order matters: d3-force-3d's browser build expects d3.octree /
-        # d3.binaryTree to already exist on the shared d3 global
-        self.assertLess(source.index("d3-octree"), source.index("d3-binarytree"))
-        self.assertLess(source.index("d3-binarytree"), source.index("d3-force-3d"))
+        # d3.binaryTree to already exist on the shared d3 global, and classic
+        # script tags execute in document order
+        positions = [tags.index(url) for url in expected]
+        self.assertEqual(positions, sorted(positions))
+        for url, integrity in CDN_SCRIPTS:
+            with self.subTest(url=url):
+                self.assertTrue(integrity.startswith("sha384-"))
+                self.assertIn(f'src="{url}" integrity="{integrity}"', tags)
+        self.assertEqual(tags.count('crossorigin="anonymous"'), len(CDN_SCRIPTS))
 
-    def test_rendered_html_has_no_external_subresources(self) -> None:
+    def test_only_pinned_cdn_subresources_are_referenced(self) -> None:
         import re as _re
 
         with tempfile.TemporaryDirectory() as directory:
@@ -597,7 +581,12 @@ class OverviewTests(unittest.TestCase):
             result = generate_overview(root, language="en")
             html = Path(result.path).read_text(encoding="utf-8")
 
-            for pattern in (r"\ssrc=", r'href="http', r"@import", r"url\(\s*http"):
+            # the four pinned bundles are the only things the page may fetch
+            self.assertEqual(
+                sorted(_re.findall(r'\ssrc="([^"]+)"', html)),
+                sorted(url for url, _ in CDN_SCRIPTS),
+            )
+            for pattern in (r'href="http', r"@import", r"url\(\s*http", r"XMLHttpRequest"):
                 with self.subTest(pattern=pattern):
                     self.assertIsNone(_re.search(pattern, html))
 

@@ -116,8 +116,10 @@ configured score, confidence, verdict, and bidirectional-evidence gates — are
 drawn on top as a stronger *confirmed* class, anchored to the same signals when
 their spark text can be matched. Hidden RAG/topic similarity links still
 position related neurons near each other.
-The HTML embeds its rendering library, so it opens and stays fully interactive
-with no network access. Generate only on explicit overview requests;
+The map is three-dimensional: drag the background to orbit, scroll to dolly,
+drag a neuron to reposition it. The HTML loads its rendering library from a
+version-pinned CDN, so opening it needs network access — offline it shows a
+notice instead of the map. Generate only on explicit overview requests;
 watch intake must not refresh or open the artifact automatically.
 
 ## Watch events

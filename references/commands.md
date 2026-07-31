@@ -200,7 +200,8 @@ search, graph, overview, explain, brief, or idea-generation work.
 - If the channel blocks `file://` links, send the HTML through the channel's
   structured file-attachment tool using `path`; do not render fake linked text.
 - It does not start a server or open the browser.
-- Fully self-contained — no network access is needed to open it.
+- Loads D3 from a version-pinned, SRI-guarded CDN, so opening it needs network
+  access; offline the page shows a localized notice instead of the map.
 
 `/clawshelf brief [folder] [question] [--lang auto|en|zh]`
 
