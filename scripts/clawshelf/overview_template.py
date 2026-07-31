@@ -60,10 +60,23 @@ def cdn_script_tags() -> str:
     )
 
 
-def render_page(data_json: str) -> str:
+# BCP 47 tags for the resolved interface language. `lang` drives font
+# selection, hyphenation and screen-reader voice, and the page script reads it
+# for the strings it has to show before `data.ui` is available.
+_HTML_LANG = {"zh": "zh-CN", "en": "en"}
+
+
+def render_page(
+    data_json: str,
+    language: str = "en",
+    page_title: str = "ClawShelf Neural Map",
+) -> str:
     """Compose the page. Data is substituted first so it can never inject markup."""
-    return _HTML_TEMPLATE.replace("__OVERVIEW_DATA__", data_json).replace(
-        "__CDN_SCRIPTS__", cdn_script_tags()
+    return (
+        _HTML_TEMPLATE.replace("__OVERVIEW_DATA__", data_json)
+        .replace("__CDN_SCRIPTS__", cdn_script_tags())
+        .replace("__LANG__", _HTML_LANG.get(language, "en"))
+        .replace("__PAGE_TITLE__", escape(page_title))
     )
 
 
@@ -86,7 +99,12 @@ _APP_STYLE = r"""
   --relation: #d97706;
   --connection: #64748b;
   --shadow: 0 1px 2px rgba(28, 34, 48, .04), 0 12px 32px rgba(28, 34, 48, .07);
-  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  /* CJK faces trail the western ones: a Chinese label falls through to the
+     first stack entry that actually has the glyph, so western text keeps the
+     book face and Chinese text gets a real serif instead of a system default
+     at a mismatched weight. */
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia,
+    "Songti SC", "Noto Serif CJK SC", "Source Han Serif SC", "SimSun", serif;
 }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
@@ -94,7 +112,8 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
-  font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font: 14px/1.5 ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 .shell {
@@ -373,8 +392,27 @@ aside h3 {
   0%, 100% { filter: none; }
   35% { filter: brightness(1.32) saturate(1.35) drop-shadow(0 0 9px rgba(28, 34, 48, .3)); }
 }
-/* selection reads as a heavier contour, not a glow */
-.selected .soma { stroke: var(--accent); stroke-width: 2.6; }
+/* Selection repaints the soma in the accent and lays a ring around it. A
+   heavier contour alone was invisible in a field of same-sized somata -- the
+   selected neuron has to be findable without hunting. */
+.neuron.selected .soma {
+  fill: url(#soma-selected);
+  stroke: var(--accent);
+  stroke-width: 2.6;
+}
+.neuron.selected .soma-ring {
+  stroke: var(--accent);
+  stroke-opacity: .5;
+  stroke-width: 5;
+}
+.neuron.selected .nlabel { fill: var(--accent); font-weight: 700; }
+/* while a source/target filter is on: the pivot neuron keeps the accent, the
+   neurons on the other end of its synapses take the partner color */
+.neuron.as-source .soma { fill: url(#soma-selected); }
+.neuron.as-target .soma { fill: url(#soma-partner); }
+.neuron.as-source .soma-ring, .neuron.as-target .soma-ring { stroke-opacity: .45; stroke-width: 3; }
+.neuron.as-source .soma-ring { stroke: #3563d6; }
+.neuron.as-target .soma-ring { stroke: #0f9a72; }
 .synapse.selected { stroke-opacity: 1 !important; stroke-width: 3.4 !important; }
 .synapse.hover { stroke-opacity: 1 !important; }
 .hit { fill: none; stroke: transparent; stroke-width: 14; pointer-events: stroke; cursor: pointer; }
@@ -421,11 +459,22 @@ _APP_SCRIPT = r"""
   "use strict";
 
   var overlay = document.getElementById("overlay");
+
+  // Every message below can fire before `data.ui` is readable (a truncated
+  // payload takes the parse branch), so the last-resort strings pick their
+  // language from the document element the renderer stamped with the resolved
+  // interface language -- not from a hardcoded English literal.
+  var ZH = (document.documentElement.lang || "").toLowerCase().indexOf("zh") === 0;
+  function fallback(zh, en) { return ZH ? zh : en; }
+
   var data = null;
   try {
     data = JSON.parse(document.getElementById("overview-data").textContent);
   } catch (err) {
-    overlay.textContent = "Overview data could not be parsed.";
+    overlay.textContent = fallback(
+      "概览数据无法解析。",
+      "Overview data could not be parsed."
+    );
     overlay.classList.add("error");
     return;
   }
@@ -435,8 +484,10 @@ _APP_SCRIPT = r"""
   // network (or an SRI mismatch) leaves `d3` undefined. Say so plainly instead
   // of throwing an opaque ReferenceError into an otherwise blank canvas.
   if (typeof d3 === "undefined" || !d3.forceSimulation) {
-    overlay.textContent = ui.offline_notice ||
-      "This map loads its drawing library from the network. Reconnect and reopen the file.";
+    overlay.textContent = ui.offline_notice || fallback(
+      "神经图谱需要联网加载绘图库，请连接网络后重新打开此文件。",
+      "This map loads its drawing library from the network. Reconnect and reopen the file."
+    );
     overlay.classList.add("error");
     return;
   }
@@ -444,7 +495,8 @@ _APP_SCRIPT = r"""
   try {
     boot();
   } catch (err) {
-    overlay.textContent = (ui.render_error || "Render failed") + " " + err;
+    overlay.textContent =
+      (ui.render_error || fallback("图谱渲染失败。", "Render failed")) + " " + err;
     overlay.classList.add("error");
   }
 
@@ -493,6 +545,18 @@ _APP_SCRIPT = r"""
     addStat(statsEl, stats.synapses, ui.synapses);
     if (stats.confirmed) { addStat(statsEl, stats.confirmed, ui.confirmed); }
 
+    // A big shelf drops the per-terminal detail (see the LIGHT branches below).
+    // Declared before the model is built, not next to its first use:
+    // buildAnatomy runs while the nodes are mapped and reads it.
+    var totalSignals = stats.signals || 0;
+    var LIGHT = (data.nodes || []).length > 400 || totalSignals > 4000;
+
+    // Terminal radii live here rather than at the two <circle> call sites: a
+    // synapse has to stop at the *edge* of the terminal it lands on, so the
+    // anchor bookkeeping and the drawn circle must agree by construction.
+    var BOUTON_R = 3.4;
+    var DTIP_R = 2.6;
+
     // ---------- model ----------
     var nodes = (data.nodes || []).map(function (n) {
       var copy = Object.assign({}, n);
@@ -528,9 +592,6 @@ _APP_SCRIPT = r"""
       byId[s.postNode].incoming.push(s);
     });
 
-    var totalSignals = stats.signals || 0;
-    var LIGHT = nodes.length > 400 || totalSignals > 4000;
-
     // ---------- geometry ----------
     function buildAnatomy(n) {
       var seed = parseInt(n.id.slice(-4), 16);
@@ -552,6 +613,7 @@ _APP_SCRIPT = r"""
       var axonCount = n.axon.length;
       if (axonCount) {
         var L = n.r + 52 + 7 * axonCount;
+        n.axonTip = L;
         var mx = (n.r + L) / 2;
         n.axonPath = "M" + fmt(n.r) + ",0Q" + fmt(mx) + "," + fmt(0.18 * L * bow) + " " + fmt(L) + ",0";
         var spread = (52 / DEG) * Math.min(1, axonCount / 3);
@@ -560,7 +622,12 @@ _APP_SCRIPT = r"""
           var len = 16 + (k % 3) * 5;
           var bx = L + len * Math.cos(a);
           var by = len * Math.sin(a);
-          n.anchors[s.id] = { dx: bx, dy: by, angle: a };
+          // LIGHT drops the boutons and their stems, so the axon simply ends at
+          // the trunk tip -- anchor there instead, or the synapse would start
+          // in empty space beyond the last drawn ink.
+          n.anchors[s.id] = LIGHT
+            ? { dx: L, dy: 0, angle: 0, rad: 0 }
+            : { dx: bx, dy: by, angle: a, rad: BOUTON_R };
           tips.push([bx, by]);
           return { id: s.id, signal: s, x: bx, y: by, stem: "M" + fmt(L) + ",0L" + fmt(bx) + "," + fmt(by) };
         });
@@ -596,7 +663,9 @@ _APP_SCRIPT = r"""
         var tw = len * 0.22;
         var twig = "M" + fmt(bx) + "," + fmt(by) + "L" + fmt(bx + tw * Math.cos(a - 0.62)) + "," + fmt(by + tw * Math.sin(a - 0.62)) +
                    "M" + fmt(bx) + "," + fmt(by) + "L" + fmt(bx + tw * Math.cos(a + 0.62)) + "," + fmt(by + tw * Math.sin(a + 0.62));
-        n.anchors[s.id] = { dx: tx, dy: ty, angle: a };
+        // the dendrite curve itself ends at (tx, ty) whether or not the tip
+        // circle is drawn, so only the radius depends on LIGHT
+        n.anchors[s.id] = { dx: tx, dy: ty, angle: a, rad: LIGHT ? 0 : DTIP_R };
         tips.push([tx, ty]);
         return { id: s.id, signal: s, x: tx, y: ty, path: d, twig: twig };
       });
@@ -641,6 +710,20 @@ _APP_SCRIPT = r"""
       somaFills[base] = "url(#" + id + ")";
     });
     function somaFill(color) { return somaFills[color] || color; }
+
+    // Two more of the same gradient, for the selected neuron and -- while a
+    // "show only as source/target" filter is on -- for the neurons on the far
+    // side of it. Role color says what a neuron *is*; these say which end of
+    // the connection you are looking at, so the direction reads at a glance.
+    ["#3563d6", "#0f9a72"].forEach(function (base, i) {
+      var grad = defs.append("radialGradient")
+        .attr("id", i === 0 ? "soma-selected" : "soma-partner")
+        .attr("cx", "50%").attr("cy", "50%").attr("r", "62%")
+        .attr("fx", "34%").attr("fy", "28%");
+      grad.append("stop").attr("offset", "0%").attr("stop-color", mixColor(base, "#ffffff", 0.30));
+      grad.append("stop").attr("offset", "55%").attr("stop-color", base);
+      grad.append("stop").attr("offset", "100%").attr("stop-color", mixColor(base, "#1c2230", 0.26));
+    });
 
     var viewport = svg.append("g").attr("class", "viewport lod-mid");
     var synapseLayer = viewport.append("g");
@@ -740,7 +823,7 @@ _APP_SCRIPT = r"""
           var live = b.signal.synapse_count > 0 ? " live" : "";
           arbor.append("path").attr("class", "branchlet" + live).attr("d", b.stem);
           arbor.append("circle").attr("class", "bouton" + live)
-            .attr("cx", b.x).attr("cy", b.y).attr("r", 3.4).attr("fill", somaFill(color))
+            .attr("cx", b.x).attr("cy", b.y).attr("r", BOUTON_R).attr("fill", somaFill(color))
             .attr("data-signal", b.id)
             .on("mouseenter", function (event) { showTip(event, b.signal); })
             .on("mouseleave", hideTip)
@@ -749,7 +832,7 @@ _APP_SCRIPT = r"""
         n.dendrites.forEach(function (b) {
           var live = b.signal.synapse_count > 0 ? " live" : "";
           arbor.append("circle").attr("class", "dtip" + live)
-            .attr("cx", b.x).attr("cy", b.y).attr("r", 2.6).attr("stroke", color)
+            .attr("cx", b.x).attr("cy", b.y).attr("r", DTIP_R).attr("stroke", color)
             .attr("data-signal", b.id)
             .on("mouseenter", function (event) { showTip(event, b.signal); })
             .on("mouseleave", hideTip)
@@ -933,18 +1016,41 @@ _APP_SCRIPT = r"""
     }
 
     // ---------- geometry of a drawn synapse ----------
+    // The neuron group is drawn at a *compressed* scale, not at the raw
+    // perspective factor (see the transform in render()). Anything that has to
+    // land on drawn ink -- every synapse endpoint -- must use the same number,
+    // or the endpoints overshoot the near neurons and fall short of the far
+    // ones. One function, both call sites.
+    function nodeScale(p) {
+      // pow() compresses the perspective range: far neurons stay legible and
+      // near ones don't swallow the canvas, while the ordering still reads.
+      // Rounded here, not at the transform: the attribute string and the
+      // anchor math have to agree to the last digit they both emit.
+      var k = clamp(Math.pow(Math.max(p.f, 0.02), 0.65), 0.45, 1.35);
+      return Math.round(k * 1000) / 1000;
+    }
+
     function anchor(node, signalId) {
-      var p = node.__proj || project3d(node);
-      var local = signalId && node.anchors[signalId];
-      var dx = local ? local.dx : node.r;
-      var dy = local ? local.dy : 0;
-      var localAngle = local ? local.angle : 0;
+      var proj = node.__proj || project3d(node);
+      // fmt() to match the translate the group is actually drawn with
+      var p = { sx: fmt(proj.sx), sy: fmt(proj.sy), f: proj.f };
+      var k = nodeScale(proj);
+      var local = signalId ? node.anchors[signalId] : null;
       var c = Math.cos(node.theta);
       var s = Math.sin(node.theta);
+      if (!local) {
+        // No resolvable signal on this side (a confirmed synapse whose spark
+        // text matched no signal). The endpoint belongs on the soma rim, but
+        // which point of the rim depends on where the partner is -- so return
+        // the center and let synapsePath place it once both sides are known.
+        return { x: p.sx, y: p.sy, a: node.theta, k: k, soma: node.r * k };
+      }
       return {
-        x: p.sx + (dx * c - dy * s) * p.f,
-        y: p.sy + (dx * s + dy * c) * p.f,
-        a: localAngle + node.theta
+        x: p.sx + (local.dx * c - local.dy * s) * k,
+        y: p.sy + (local.dx * s + local.dy * c) * k,
+        a: local.angle + node.theta,
+        k: k,
+        rad: (local.rad || 0) * k
       };
     }
 
@@ -954,11 +1060,33 @@ _APP_SCRIPT = r"""
       // along it -- always runs from the firing side to the receiving side.
       var a = anchor(byId[s.preNode], s.preSignal);
       var b = anchor(byId[s.postNode], s.postSignal);
-      // pull back along the tangents so a visible synaptic cleft remains
-      var p1x = a.x + 3 * Math.cos(a.a);
-      var p1y = a.y + 3 * Math.sin(a.a);
-      var p2x = b.x + 3 * Math.cos(b.a);
-      var p2y = b.y + 3 * Math.sin(b.a);
+      // Both endpoints sit on the rim of the thing they attach to -- the
+      // terminal circle, or the soma for an unanchored side -- inset toward
+      // the partner. That leaves a visible cleft without ever detaching: the
+      // pull-back runs along the chord, not along the terminal's own outgoing
+      // direction (which pushed the endpoint away from its own ink).
+      var ux = b.x - a.x;
+      var uy = b.y - a.y;
+      var span = Math.hypot(ux, uy) || 1;
+      ux /= span;
+      uy /= span;
+      var aBack = a.soma !== undefined ? a.soma : a.rad + 1.5 * a.k;
+      var bBack = b.soma !== undefined ? b.soma : b.rad + 1.5 * b.k;
+      // never eat the whole chord on two neurons that overlap on screen
+      var room = Math.max(0, span - 2);
+      if (aBack + bBack > room) {
+        var shrink = room / (aBack + bBack || 1);
+        aBack *= shrink;
+        bBack *= shrink;
+      }
+      var p1x = a.x + ux * aBack;
+      var p1y = a.y + uy * aBack;
+      var p2x = b.x - ux * bBack;
+      var p2y = b.y - uy * bBack;
+      var chordA = Math.atan2(uy, ux);
+      // an unanchored end has no arbor direction of its own; leave along the chord
+      var aAng = a.soma !== undefined ? chordA : leaveAngle(a.a, chordA);
+      var bAng = b.soma !== undefined ? chordA + Math.PI : leaveAngle(b.a, chordA + Math.PI);
       var dist = Math.hypot(p2x - p1x, p2y - p1y) || 1;
       // clamped so a long synapse approaches head-on instead of looping wide
       var k = Math.min((s.kind === "axo_axonic" ? 0.22 : 0.35) * dist, 40);
@@ -969,9 +1097,24 @@ _APP_SCRIPT = r"""
       var ox = -(p2y - p1y) / dist * bow;
       var oy = (p2x - p1x) / dist * bow;
       return "M" + fmt(p1x) + "," + fmt(p1y) +
-        "C" + fmt(p1x + k * Math.cos(a.a) + ox) + "," + fmt(p1y + k * Math.sin(a.a) + oy) +
-        " " + fmt(p2x + k * Math.cos(b.a) + ox) + "," + fmt(p2y + k * Math.sin(b.a) + oy) +
+        "C" + fmt(p1x + k * Math.cos(aAng) + ox) + "," + fmt(p1y + k * Math.sin(aAng) + oy) +
+        " " + fmt(p2x + k * Math.cos(bAng) + ox) + "," + fmt(p2y + k * Math.sin(bAng) + oy) +
         " " + fmt(p2x) + "," + fmt(p2y);
+    }
+
+    // A synapse leaves along its terminal's own direction, which is what makes
+    // it read as continuing the arbor rather than as a wire tied to it. But an
+    // arbor points at its *strongest* partner, so a weaker synapse can face
+    // away -- and a tangent pointing backwards makes the curve loop out and
+    // return, which is what reads as "not attached". Past 60 degrees of
+    // disagreement, bend the departure toward the chord.
+    function leaveAngle(termAngle, chordAngle) {
+      var diff = Math.atan2(
+        Math.sin(chordAngle - termAngle),
+        Math.cos(chordAngle - termAngle)
+      );
+      var excess = (Math.abs(diff) - Math.PI / 3) / (Math.PI * 2 / 3);
+      return termAngle + diff * clamp(excess, 0, 1) * 0.85;
     }
 
     function synapseDepth(s) {
@@ -1023,10 +1166,8 @@ _APP_SCRIPT = r"""
       neuronSel.sort(function (a, b) { return b.__proj.z - a.__proj.z; });
       neuronSel.attr("transform", function (n) {
         var p = n.__proj;
-        // pow() compresses the perspective range: far neurons stay legible and
-        // near ones don't swallow the canvas, while the ordering still reads
-        var k = clamp(Math.pow(Math.max(p.f, 0.02), 0.65), 0.45, 1.35);
-        return "translate(" + fmt(p.sx) + "," + fmt(p.sy) + ") scale(" + fmt(k) + ")";
+        return "translate(" + fmt(p.sx) + "," + fmt(p.sy) +
+          ") scale(" + nodeScale(p) + ")";
       });
       arborSel.attr("transform", function (n) { return "rotate(" + fmt(n.theta * DEG) + ")"; });
 
@@ -1034,7 +1175,11 @@ _APP_SCRIPT = r"""
       // ground is just opacity -- no filter, no second color. Kept even on a
       // big shelf; it is one attribute write per node, and depth separation is
       // what makes a crowded plate readable at all.
-      neuronSel.attr("opacity", function (n) { return fmt(1 - 0.55 * n.__depth); });
+      // ...except the neuron the reader picked: fading the selection into the
+      // background is exactly the thing the accent is there to prevent.
+      neuronSel.attr("opacity", function (n) {
+        return fmt(1 - (n === selected ? 0.2 : 0.55) * n.__depth);
+      });
 
       redrawSynapses();
       if (!LIGHT) {
@@ -1499,6 +1644,18 @@ _APP_SCRIPT = r"""
         });
       }
 
+      // Direction coloring, so "show only as source" answers *which one is the
+      // source* as well as which ones are reachable from it. Cleared with the
+      // filter; the plain .selected accent takes over again.
+      neuronSel.classed("as-source", function (n) {
+        if (!connIds) { return false; }
+        return connectionFilter === "source" ? n === selected : n !== selected && connIds[n.id];
+      });
+      neuronSel.classed("as-target", function (n) {
+        if (!connIds) { return false; }
+        return connectionFilter === "target" ? n === selected : n !== selected && connIds[n.id];
+      });
+
       neuronSel.classed("dim", function (n) {
         var ok = (!type || n.type === type) &&
           (!conf || n.confidence === conf) &&
@@ -1544,7 +1701,7 @@ _APP_SCRIPT = r"""
     var connectionFilter = null;
 
     function clearSelection() {
-      neuronSel.classed("selected", false);
+      neuronSel.classed("selected", false).classed("as-source", false).classed("as-target", false);
       synapseSel.classed("selected", false);
       d3.selectAll(".branch-focus").classed("branch-focus", false);
       if (connectionFilter) { connectionFilter = null; applyFilters(); }
@@ -1953,12 +2110,12 @@ _APP_SCRIPT = r"""
 
 
 _SKELETON = r"""<!doctype html>
-<html lang="en">
+<html lang="__LANG__">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>ClawShelf Neural Map</title>
+  <title>__PAGE_TITLE__</title>
   <style>__APP_STYLE__</style>
 </head>
 <body>

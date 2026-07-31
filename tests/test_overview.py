@@ -3,10 +3,12 @@ from __future__ import annotations
 from contextlib import redirect_stdout
 import io
 import json
+import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,10 +18,12 @@ from clawshelf.config import ShelfConfig
 from clawshelf.overview import (
     OVERVIEW_NAME,
     OverviewError,
+    _resolve_language,
     _ui_strings,
     build_overview_data,
     generate_overview,
     main as overview_main,
+    render_overview_html,
 )
 from clawshelf.overview_synapses import (
     SYNAPSE_GLOBAL_CAP,
@@ -597,6 +601,42 @@ class OverviewTests(unittest.TestCase):
         self.assertEqual(set(english), set(chinese))
         self.assertTrue(all(value.strip() for value in english.values()))
         self.assertTrue(all(value.strip() for value in chinese.values()))
+
+    def test_page_declares_the_resolved_interface_language(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self._write_record(
+                root, "a", "a.md", "River Restoration", "md", ["restoration"],
+                axon=AXON, dendrite=DENDRITE,
+            )
+
+            chinese = render_overview_html(
+                build_overview_data(root, ShelfConfig(), language="zh")[0]
+            )
+            english = render_overview_html(
+                build_overview_data(root, ShelfConfig(), language="en")[0]
+            )
+
+        self.assertIn('<html lang="zh-CN">', chinese)
+        self.assertIn("<title>" + _ui_strings("zh")["title"] + "</title>", chinese)
+        self.assertIn('<html lang="en">', english)
+        self.assertIn("<title>" + _ui_strings("en")["title"] + "</title>", english)
+
+    def test_auto_language_falls_back_to_chinese_without_a_usable_locale(self) -> None:
+        cases = {
+            "zh": [{}, {"LANG": "C"}, {"LC_ALL": "POSIX", "LANG": ""}, {"LANG": "zh_CN.UTF-8"}],
+            "en": [{"LANG": "en_US.UTF-8"}, {"LC_ALL": "de_DE.UTF-8", "LANG": "C"}],
+        }
+        for expected, environments in cases.items():
+            for environment in environments:
+                with self.subTest(env=environment):
+                    patched = {name: "" for name in ("LC_ALL", "LC_MESSAGES", "LANG")}
+                    patched.update(environment)
+                    with mock.patch.dict(os.environ, patched, clear=False):
+                        self.assertEqual(_resolve_language("auto"), expected)
+                        # an explicit choice is never second-guessed
+                        self.assertEqual(_resolve_language("en"), "en")
+                        self.assertEqual(_resolve_language("zh"), "zh")
 
     def test_synapse_computation_stays_within_budget(self) -> None:
         import time
