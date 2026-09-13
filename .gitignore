@@ -2,3 +2,4 @@
 .clawhub/
 .venv/
 __pycache__/
+.clawshelf-runtime

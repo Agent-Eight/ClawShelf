@@ -21,9 +21,9 @@ A compatible harness must provide:
 | Concern | Portable behavior | Harness-specific behavior |
 | --- | --- | --- |
 | Skill workflow | `SKILL.md` and relative references | Discovery/invocation command |
-| Extraction | `uv run --locked` scripts | Shell permission model |
+| Extraction | `scripts/run.sh python` (locked uv environment) | Shell permission model |
 | URL fetching | `urllib` inside `UrlExtractor`, no crawling | Network/proxy/allowlist policy |
-| Retrieval | Global `qmd` CLI | Installation location/PATH |
+| Retrieval | QMD through `scripts/run.sh` | Installation location/PATH |
 | Fallback | `extraction_method: llm_fallback` | Native file-reading tools |
 
 If a harness cannot access an unsupported source's real content, it must record

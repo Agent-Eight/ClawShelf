@@ -1,31 +1,20 @@
-#!/usr/bin/env sh
-set -eu
-
-QMD_VERSION="${QMD_VERSION:-2.5.3}"
-
-if ! command -v node >/dev/null 2>&1; then
-  echo "Node.js 22+ is required for QMD." >&2
-  exit 1
+#!/usr/bin/env bash
+set -euo pipefail
+QMD_VERSION=2.5.3
+command -v node >/dev/null || { echo 'Node.js 22+ is required for QMD.' >&2; exit 1; }
+node -e 'process.exit(Number(process.versions.node.split(".")[0]) >= 22 ? 0 : 1)' || { echo 'Node.js 22+ is required for QMD.' >&2; exit 1; }
+command -v npm >/dev/null
+if [[ $(uname -s) == Darwin ]]; then
+  command -v brew >/dev/null && brew list sqlite >/dev/null 2>&1 || {
+    echo "macOS QMD requires Homebrew SQLite. Run 'brew install sqlite'." >&2; exit 1;
+  }
 fi
-if [ "$(node -p 'process.versions.node.split(".")[0]')" -lt 22 ]; then
-  echo "Node.js 22+ is required for QMD." >&2
-  exit 1
+prefix="${CLAWSHELF_DATA_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/clawshelf}/qmd"
+qmd="$prefix/bin/qmd"
+version=''
+if [[ -x "$qmd" ]]; then version=$("$qmd" --version 2>/dev/null || true); fi
+if [[ "$version" != "qmd $QMD_VERSION" && "$version" != "qmd $QMD_VERSION ("* && "$version" != "$QMD_VERSION" ]]; then
+  npm install --global --prefix "$prefix" "@tobilu/qmd@$QMD_VERSION"
 fi
-if [ "$(uname)" = "Darwin" ] && ! command -v brew >/dev/null 2>&1; then
-  echo "macOS QMD requires Homebrew SQLite: install Homebrew, then run 'brew install sqlite'." >&2
-  exit 1
-fi
-if [ "$(uname)" = "Darwin" ] && ! brew list sqlite >/dev/null 2>&1; then
-  echo "macOS QMD requires SQLite. Run 'brew install sqlite' and retry." >&2
-  exit 1
-fi
-
-npm install -g "@tobilu/qmd@${QMD_VERSION}"
-QMD_BIN="${QMD_BIN:-$(npm prefix -g)/bin/qmd}"
-if [ ! -x "$QMD_BIN" ]; then
-  echo "QMD was installed but its npm global binary was not found: $QMD_BIN" >&2
-  exit 1
-fi
-mkdir -p "${XDG_CONFIG_HOME:-$HOME/.config}/qmd" "${XDG_CACHE_HOME:-$HOME/.cache}/qmd"
-"$QMD_BIN" --version
-"$QMD_BIN" status
+[[ -x "$qmd" ]] || { echo "QMD binary not found: $qmd" >&2; exit 1; }
+"$qmd" --version

@@ -39,7 +39,7 @@ refresh, search, and watch work should return to `SKILL.md`.
 4. Extract Markdown and text directly. For PDF, XLSX, or URL input, run:
 
    ```bash
-   uv run --locked --project {baseDir} python {baseDir}/scripts/extract-source.py <source-path-or-url>
+   bash "{baseDir}/scripts/run.sh" python "{baseDir}/scripts/extract-source.py" <source-path-or-url>
    ```
 
 5. For unsupported files, use harness file-reading tools only when they expose

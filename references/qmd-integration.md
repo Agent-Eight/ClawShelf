@@ -1,5 +1,10 @@
 # QMD Integration Reference
 
+
+For one-step installations, invoke QMD through
+`bash "{baseDir}/scripts/run.sh" qmd <arguments>`.
+The `qmd` examples below are shorthand for that runtime entry point.
+
 ClawShelf indexes generated Markdown in `clawshelf/normalized/`. QMD owns
 collection management and retrieval; ClawShelf owns extraction, normalization,
 and source traceability.

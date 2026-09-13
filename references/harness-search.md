@@ -1,5 +1,10 @@
 # Harness Search Reference
 
+
+For one-step installations, invoke QMD through
+`bash "{baseDir}/scripts/run.sh" qmd <arguments>`.
+The `qmd` examples below are shorthand for that runtime entry point.
+
 ClawShelf search is user-facing through the active harness, not through QMD
 commands. The agent translates natural-language shelf requests into backend
 retrieval, then returns source-cited answers.

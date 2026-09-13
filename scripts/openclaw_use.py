@@ -88,11 +88,8 @@ def build_watcher_command(
             "Watcher startup requires the agent and canonical session bound by /clawshelf use."
         )
     command = [
-        "uv",
-        "run",
-        "--locked",
-        "--project",
-        str(skill_dir),
+        "/bin/bash",
+        str(skill_dir / "scripts" / "run.sh"),
         "python",
         str(skill_dir / "scripts" / "openclaw-watch-adapter.py"),
         str(folder.resolve()),

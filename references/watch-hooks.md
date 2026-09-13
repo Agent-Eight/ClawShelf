@@ -30,13 +30,13 @@ excluded from its own comparison set.
 ## Commands
 
 ```bash
-uv run --locked --project <skill-dir> python <skill-dir>/scripts/openclaw-use.py <folder> \
+bash "<skill-dir>/scripts/run.sh" python "<skill-dir>/scripts/openclaw-use.py" <folder> \
   --session-key <current-openclaw-session-key>
 
-uv run --locked --project <skill-dir> python <skill-dir>/scripts/openclaw-watch-adapter.py <folder> \
+bash "<skill-dir>/scripts/run.sh" python "<skill-dir>/scripts/openclaw-watch-adapter.py" <folder> \
   --agent-id <current-openclaw-agent-id> --session-key <current-openclaw-session-key>
 
-uv run --locked --project <skill-dir> python <skill-dir>/scripts/openclaw-watch-adapter.py <folder> \
+bash "<skill-dir>/scripts/run.sh" python "<skill-dir>/scripts/openclaw-watch-adapter.py" <folder> \
   --agent-id <current-openclaw-agent-id> --session-key <current-openclaw-session-key> \
   --once <new-file>
 ```

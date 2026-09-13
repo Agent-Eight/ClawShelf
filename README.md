@@ -72,6 +72,40 @@ ClawShelf 不会因为出现了相同关键词就直接连线，而是继续核�
 
 ## 快速开始
 
+### 一条命令安装（推荐）
+
+支持 macOS、Linux 和 WSL。请先安装并配置 OpenClaw、Node.js 22+、npm、Git 和 curl；
+macOS 还需要已有 Homebrew。安装器会自动补齐 uv、Python 3.11、QMD 2.5.3 和 macOS SQLite。
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Agent-Eight/ClawShelf/main/install.sh | bash
+```
+
+指定 Agent 或共享安装（二选一）：
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Agent-Eight/ClawShelf/main/install.sh | bash -s -- --agent research
+curl -fsSL https://raw.githubusercontent.com/Agent-Eight/ClawShelf/main/install.sh | bash -s -- --global
+```
+
+也可以在本地仓库运行 `bash install.sh`；它同样安装 GitHub 的 `main` 分支。
+重复运行会复用已有技能和依赖；需要替换已有技能时，显式添加 `--reinstall`。
+安装器不使用 sudo，不修改 Shell 配置，不重启 OpenClaw，也不自动激活资料架。
+宿主的安装安全检查仍然有效；安装被拒绝时会退出并显示原因。
+
+工具和路径配置放在 `${XDG_DATA_HOME:-$HOME/.local/share}/clawshelf/`，
+Python 虚拟环境放在技能目录。QMD 使用专属安装，不覆盖全局版本。
+技能通过运行入口读取绝对路径，因此后台无需加载 Shell 配置。
+安装时会验证实际内容提取和独立索引的关键词检索，不改动已有 QMD 集合。
+首次语义检索仍可能下载模型并建立向量索引。
+
+安装失败后按错误信息修复并重跑同一命令。共享技能如果被当前 Agent 的同名技能遮蔽，
+安装器会提示位置冲突，不会删除已有副本。完成后打开新的 OpenClaw 会话，再按下文选择资料文件夹。
+
+### 手动安装（可选）
+
+以下步骤保留给需要自行管理依赖的用户。
+
 ### 1. 安装依赖
 
 安装 ClawShelf 前，请先准备好：
@@ -309,6 +343,16 @@ openclaw skills check
 ```
 
 ### 缺少必需工具
+
+如果使用一步安装，先重跑安装命令。检查专属 QMD 时，使用技能安装路径：
+
+```bash
+bash "/absolute/path/to/installed/clawshelf/scripts/run.sh" qmd --version
+bash "/absolute/path/to/installed/clawshelf/scripts/run.sh" qmd status
+```
+
+可用 `openclaw skills info clawshelf --json` 查看技能位置（指定 Agent 时加 `--agent <id>`）。
+专属工具不必出现在终端 PATH 中；以下检查适用于手动安装的全局工具。
 
 确认 `uv`、Node.js 22 或更高版本，以及 QMD 都已安装：
 

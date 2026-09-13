@@ -2,7 +2,7 @@
 name: clawshelf
 description: "Turn a local document shelf into a proactive research/file companion: source-traceable archive, knowledge map/search, and idea generation."
 license: MIT
-metadata: { "author": "OpenClaw ClawShelf maintainers", "tags": ["research", "document-management", "retrieval", "knowledge-map", "idea-generation"], "permissions": ["file_read", "file_write", "shell_execute", "network"], "openclaw": { "emoji": "🐚", "requires": { "bins": ["uv"] }, "install": [{ "id": "brew-uv", "kind": "brew", "formula": "uv", "bins": ["uv"], "label": "Install uv (brew)" }, { "id": "node-qmd", "kind": "node", "package": "@tobilu/qmd", "bins": ["qmd"], "label": "Install QMD (npm)" }], "watch": { "autoEnableWhenInstalled": true, "useCommand": "scripts/openclaw-use.py", "command": "scripts/openclaw-watch-adapter.py", "eventSchema": "clawshelf.watch-event", "eventDir": "<folder>/clawshelf/events", "pushPolicy": { "P1": "notify", "P2": "notify" } } } }
+metadata: {"author": "OpenClaw ClawShelf maintainers", "tags": ["research", "document-management", "retrieval", "knowledge-map", "idea-generation"], "permissions": ["file_read", "file_write", "shell_execute", "network"], "openclaw": {"emoji": "🐚", "requires": {"bins": ["bash"]}, "watch": {"autoEnableWhenInstalled": true, "useCommand": "scripts/openclaw-use.py", "command": "scripts/openclaw-watch-adapter.py", "eventSchema": "clawshelf.watch-event", "eventDir": "<folder>/clawshelf/events", "pushPolicy": {"P1": "notify", "P2": "notify"}}}}
 ---
 
 # ClawShelf
@@ -34,7 +34,7 @@ behavior, read `{baseDir}/references/commands.md`.
 For `/clawshelf use <folder>` in OpenClaw, run:
 
 ```bash
-uv run --locked --project {baseDir} python {baseDir}/scripts/openclaw-use.py <folder> --session-key <current-openclaw-session-key>
+bash "{baseDir}/scripts/run.sh" python "{baseDir}/scripts/openclaw-use.py" <folder> --session-key <current-openclaw-session-key>
 ```
 
 The session key must be canonical (`agent:<agent-id>:<channel>:...`).
@@ -88,7 +88,7 @@ templates live in `{baseDir}/templates/`.
 For `/clawshelf overview [folder]`, resolve a ready shelf and run:
 
 ```bash
-uv run --locked --project {baseDir} python {baseDir}/scripts/render-overview.py <folder> --lang <auto|en|zh>
+bash "{baseDir}/scripts/run.sh" python "{baseDir}/scripts/render-overview.py" <folder> --lang <auto|en|zh>
 ```
 
 Set `--lang` from the language of the current conversation — `zh` when talking

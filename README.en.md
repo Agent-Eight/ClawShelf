@@ -89,6 +89,47 @@ evidence in an interactive neuron-and-synapse map.
 
 ## Quick start
 
+### One-command installation (recommended)
+
+Supports macOS, Linux, and WSL. Configure OpenClaw first, with Node.js 22+, npm,
+Git, and curl available. macOS also needs an existing Homebrew installation.
+The installer supplies uv, Python 3.11, QMD 2.5.3, and missing macOS SQLite.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Agent-Eight/ClawShelf/main/install.sh | bash
+```
+
+Choose an agent or a shared installation (mutually exclusive):
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Agent-Eight/ClawShelf/main/install.sh | bash -s -- --agent research
+curl -fsSL https://raw.githubusercontent.com/Agent-Eight/ClawShelf/main/install.sh | bash -s -- --global
+```
+
+Running `bash install.sh` from a local checkout also installs GitHub's `main`
+branch. Repeating the command reuses the existing skill and dependencies; add
+`--reinstall` to explicitly replace the skill. The installer does not use sudo,
+edit shell profiles, restart OpenClaw, or activate a shelf. OpenClaw's native
+installation safety checks remain in effect; rejected installations stop with
+an error.
+
+Tools and path configuration live under
+`${XDG_DATA_HOME:-$HOME/.local/share}/clawshelf/`; the Python virtual environment
+lives in the skill directory. QMD has a private installation, leaving global
+versions alone. The runtime launcher uses recorded absolute paths so background
+processes need no shell profile. Verification exercises extraction and keyword
+search against an isolated index without changing existing QMD collections.
+The first semantic search may still download models and build embeddings.
+
+On failure, resolve the reported error and rerun the same command. If an agent's
+own copy shadows a shared installation, the installer reports the conflict
+without deleting either copy. After success, start a new OpenClaw session and
+choose your source folder below.
+
+### Manual installation (optional)
+
+Use the following steps if you prefer managing dependencies yourself.
+
 ### 1. Install the prerequisites
 
 Install these tools before installing ClawShelf:
@@ -366,6 +407,18 @@ openclaw skills check
 ### A required tool is missing
 
 Confirm that `uv`, Node.js 22 or later, and QMD are installed:
+
+For one-command installations, rerun the installer or check the private QMD
+through the installed skill's launcher:
+
+```bash
+bash "/absolute/path/to/installed/clawshelf/scripts/run.sh" qmd --version
+bash "/absolute/path/to/installed/clawshelf/scripts/run.sh" qmd status
+```
+
+Find the skill location with `openclaw skills info clawshelf --json` (add
+`--agent <id>` when applicable). Private tools need not be on your shell PATH.
+The following checks apply to manually installed global tools.
 
 ```bash
 uv --version
